@@ -494,6 +494,34 @@ footer.site .inner{max-width:1240px;margin:0 auto;padding:22px max(20px,env(safe
   body{background:#fff;color:#000}.card,.record{border-color:#bbb}
   .split{grid-template-columns:1fr}.wrap{padding:0;max-width:none}
 }
+
+/* Direct registration */
+.reg-head{display:flex;gap:20px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:18px}
+.next-no{border:1px dashed var(--foil);border-radius:var(--r-sm);padding:12px 16px;background:var(--page);min-width:0;max-width:100%}
+.reg-sec{border:0;border-top:1px solid var(--rule);margin:22px 0 0;padding:16px 0 0;min-width:0}
+.reg-sec legend{font-family:var(--serif);font-size:18px;color:var(--heading);padding:0 10px 0 0}
+.seg-toggle{display:inline-flex;border:1px solid var(--rule-2);border-radius:var(--r-sm);overflow:hidden;margin-bottom:14px;flex-wrap:wrap}
+.seg-toggle label{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:14px;cursor:pointer;min-height:44px}
+.seg-toggle label:has(input:checked){background:var(--brand);color:#fff}
+.seg-toggle input{accent-color:var(--foil)}
+.dropzone{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;text-align:center;border:2px dashed var(--rule-2);border-radius:var(--r-sm);padding:26px 16px;cursor:pointer;background:var(--page);word-break:break-word}
+.dropzone:hover,.dropzone:focus-within{border-color:var(--foil)}
+.override-card{border-top:3px solid var(--foil)}
+
+.store-row{border-top:1px solid var(--rule);padding:18px 0 4px;margin-top:16px}
+.store-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.store-head h3{margin:0;font-family:var(--serif);font-size:18px;color:var(--heading)}
+.store-now{font-size:14px;word-break:break-word}
+
+.more-row{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.more-note{text-align:center;margin:16px auto 0;max-width:60ch}
+.upl{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:14px;flex-wrap:wrap}
+.upl .bar{flex:1;min-width:120px;height:6px;border-radius:3px;background:var(--rule);overflow:hidden;position:relative}
+.upl .bar i{position:absolute;inset:0 auto 0 0;width:40%;background:var(--foil);border-radius:3px;animation:upl 1.1s ease-in-out infinite}
+.upl.done .bar i{width:100%;animation:none;background:var(--ok)}
+.upl.fail{color:var(--bad)}
+@keyframes upl{0%{left:-40%}100%{left:100%}}
+@media (prefers-reduced-motion:reduce){.upl .bar i{animation:none;width:100%;opacity:.5}}
 </style>
 
 </head>
@@ -506,7 +534,7 @@ footer.site .inner{max-width:1240px;margin:0 auto;padding:22px max(20px,env(safe
 <script>
 // ▼▼ PASTE YOUR APPS SCRIPT WEB APP URL BELOW (Deploy → Manage deployments → Web app URL, ends with /exec) ▼▼
 window.CU_CONFIG = {
-  apiUrl: 'https://script.google.com/macros/s/AKfycbye7acKWzaL8A1OEIUzcqT8Ag1TPn36fQk6FqFlD2NykhpDmCUrS38Kjim1znuN_3k0/exec',
+  apiUrl: 'https://script.google.com/macros/s/AKfycbwevH-j1IBVc_dkiJwbL4dJItZHc5pel_2-xsyAROkTIx-7fpNn8RVS4u2PjnjsgvUU/exec',
 };
 </script>
 <script>
@@ -525,10 +553,20 @@ window.__WEB__ = true;
 })();
 (function () {
   var API = (window.CU_CONFIG && window.CU_CONFIG.apiUrl || '').trim();
-  function call(fn, args, attempt) {
+  // Each call carries a request id. If the connection drops and the call is sent again, the server
+  // recognises the id and returns the first answer instead of saving twice.
+  function rid() {
+    var a = new Uint8Array(12); (window.crypto || window.msCrypto).getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  function call(fn, args, attempt, id) {
     if (!API) return Promise.reject(Object.assign(new Error('This website is not connected to its Apps Script backend yet. Paste the Apps Script web app URL (ending in /exec) into apiUrl at the top of index.html (or config.js / the CU_API_URL repository variable).'), { setup: true }));
-    return fetch(API, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args }) })
+    id = id || rid();
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function () { ctl.abort(); }, 150000) : null;
+    return fetch(API, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, args: args, rid: id }), signal: ctl ? ctl.signal : undefined })
       .then(function (r) {
+        clearTimeout(timer);
         if (!r.ok) throw new Error('The server answered ' + r.status + '. Please try again.');
         return r.text();
       })
@@ -537,7 +575,10 @@ window.__WEB__ = true;
         catch (e) { throw new Error('The backend returned a web page instead of data. In Apps Script, check that the deployment is a Web app with "Who has access: Anyone" and that the URL ends with /exec.'); }
       })
       .catch(function (e) {
-        if ((attempt || 0) < 1 && e instanceof TypeError) return new Promise(function (res) { setTimeout(res, 800); }).then(function () { return call(fn, args, 1); });
+        clearTimeout(timer);
+        var dropped = e instanceof TypeError || (e && e.name === 'AbortError');
+        if ((attempt || 0) < 2 && dropped) return new Promise(function (res) { setTimeout(res, 1000 * ((attempt || 0) + 1)); }).then(function () { return call(fn, args, (attempt || 0) + 1, id); });
+        if (e && e.name === 'AbortError') throw new Error('The server is taking too long to answer. Refresh the page in a minute to see whether your change was saved.');
         if (e instanceof TypeError) throw new Error('Could not reach the server. Check your internet connection and try again.');
         throw e;
       });
@@ -596,13 +637,17 @@ window.__WEB__ = true;
     if (!NO_CLEAR[fn]) memo = {}; // any change can affect cached reads
     return rawApi(fn, args);
   }
-  function rawApi(fn, args) {
+  function rawApi(fn, args, attempt) {
     return new Promise(function (resolve, reject) {
       var runner = google.script.run.withSuccessHandler(function (r) {
         if (!r) return reject(new Error('No response from the server. Please try again.'));
         if (r.ok) return resolve(r.data);
         var msg = String(r.error || 'Something went wrong.');
         if (msg.indexOf('AUTH:') === 0) { msg = msg.slice(5).trim(); sessionLost(msg); }
+        if (msg.indexOf('BUSY:') === 0) { // another save held the registry: nothing was saved, so trying again is safe
+          if ((attempt || 0) < 2) return setTimeout(function () { rawApi(fn, args, (attempt || 0) + 1).then(resolve, reject); }, 1500 + 1500 * (attempt || 0));
+          msg = msg.slice(5).trim();
+        }
         reject(new Error(msg));
       }).withFailureHandler(function (e) { var er = new Error((e && e.message) || String(e)); if (e && e.setup) er.setup = true; reject(er); });
       runner[fn].apply(runner, args);
@@ -926,11 +971,11 @@ window.__WEB__ = true;
       S.hints = S.hints || {};
       r.results.forEach(function (x) { S.hints[x.CU_Code] = x; });
       var filtered = f.q || f.subject || f.grade || f.type || f.year;
-      var shown = 25;
+      var all = r.results.slice(), more = !!r.more, loading = false;
       function draw() {
-        var list = r.results.slice(0, shown);
+        var list = all;
         $('#res').innerHTML =
-          '<div class="catalog-meta"><div class="count">' + (filtered ? r.total + ' result' + (r.total === 1 ? '' : 's') + (f.q ? ' for “' + esc(f.q) + '”' : '') : 'Recently certified resources') + '</div>' +
+          '<div class="catalog-meta"><div class="count">' + (filtered ? r.total + ' result' + (r.total === 1 ? '' : 's') + (f.q ? ' for “' + esc(f.q) + '”' : '') : 'The ' + Math.min(all.length, r.total) + ' most recently certified') + '</div>' +
           '<div class="muted small">' + r.facets.totalActive + ' certified learning resource' + (r.facets.totalActive === 1 ? '' : 's') + ' in the registry</div></div>' +
           (list.length ? '<div class="results"><div class="ledger-head" aria-hidden="true"><span>CU number</span><span>Learning resource</span><span>Subject · Grade</span><span style="text-align:right">Year</span></div>' + list.map(function (x) {
             return '<div class="rec" data-go="cu" data-code="' + esc(x.CU_Code) + '" tabindex="0" role="link" aria-label="' + esc(x.ResourceTitle + ', ' + x.CU_Code) + '">' +
@@ -939,9 +984,18 @@ window.__WEB__ = true;
               '<div class="subj">' + esc(x.SubjectArea) + ' · ' + esc(x.GradeLevel) + '<span>' + esc(x.ResourceType) + '</span></div>' +
               '<div class="yr">' + esc(x.YearIssued) + '</div></div>';
           }).join('') + '</div>' +
-            (r.results.length > shown ? '<div style="text-align:center;margin-top:16px"><button class="btn btn-ghost" id="more">Show more</button></div>' : '')
+            (filtered && more ? '<div class="more-row"><button class="btn btn-ghost" id="more">Show ' + Math.min(r.pageSize || 20, r.total - all.length) + ' more</button><span class="muted small">Showing ' + all.length + ' of ' + r.total + '</span></div>' : '') +
+            (!filtered && r.total > all.length ? '<p class="muted small more-note">Only the ' + all.length + ' latest certificates are listed here so the page stays fast. Search or use the filters to find any of the ' + r.facets.totalActive + ' records.</p>' : '')
             : '<div class="card empty"><h3>No matching records</h3><p>' + (f.q && CODE_RE.test(f.q) ? 'No certified resource is registered under <span class="mono">' + esc(f.q.toUpperCase()) + '</span>. Check the code and try again.' : 'Try a different keyword or clear the filters.') + '</p></div>');
-        var m = $('#more'); if (m) m.onclick = function () { shown += 25; draw(); };
+        var m = $('#more'); if (m) m.onclick = function () {
+          if (loading) return; loading = true; busy(m, true, 'Loading…');
+          var a = catalogArgs(f); a[1].offset = all.length;
+          api.apply(null, ['searchCatalog'].concat(a)).then(function (n) {
+            if (!alive()) return;
+            n.results.forEach(function (x) { S.hints[x.CU_Code] = x; });
+            all = all.concat(n.results); more = !!n.more; loading = false; draw();
+          }).catch(function (e) { loading = false; busy(m, false); toast(e.message, true); });
+        };
       }
       draw();
     }
@@ -1464,6 +1518,12 @@ window.__WEB__ = true;
           }).join('') + '</div><button class="linkbtn small" style="margin-top:12px" id="note-only">Save note without changing status</button></div>';
       }
 
+      if (a.canOverride) {
+        side += '<div class="card card-pad override-card" style="margin-bottom:16px"><p class="section-label">Super Admin override</p>' +
+          '<p class="small" style="margin-top:0">Already quality assured elsewhere? Approve now and issue the CU number without finishing the remaining review steps. The reason is recorded in the audit log.</p>' +
+          '<button class="btn btn-ghost btn-block" id="override">Approve now (override review)</button></div>';
+      }
+
       var timeline = '<ul class="timeline">' + (a.timeline || []).slice().reverse().map(function (t) {
         return '<li><div class="when">' + dt(t.Timestamp) + '</div><div><b>' + esc(t.Action) + '</b>' + (t.ToStatus && t.FromStatus !== t.ToStatus ? ' → ' + esc(t.ToStatus) : '') + '</div><div class="muted">' + esc(t.UserName) + (t.Details ? ' · ' + esc(t.Details) : '') + '</div></li>';
       }).join('') + '</ul>';
@@ -1495,6 +1555,7 @@ window.__WEB__ = true;
         var n = $('#dnote').value.trim(); if (!n) { toast('Write a note first.', true); return; }
         api('addReviewNote', S.token, a.ApplicationID, n).then(function (r) { toast('Note saved'); show(r); }).catch(function (e) { toast(e.message, true); });
       };
+      var ov = $('#override'); if (ov) ov.onclick = function () { confirmApprove(a, ($('#dnote') && $('#dnote').value.trim()) || '', true); };
       $$('[data-status]').forEach(function (b) {
         b.onclick = function () {
           var s = b.dataset.status, note = $('#dnote').value.trim();
@@ -1513,20 +1574,24 @@ window.__WEB__ = true;
     }).join('') + '</select>';
   }
 
-  function confirmApprove(a, note) {
+  function confirmApprove(a, note, override) {
     var y = new Date();
     var preview = S.cfg.codePrefix + '-' + ('0' + (y.getMonth() + 1)).slice(-2) + '-' + y.getFullYear() + '-####';
     modal({ title: 'Approve & issue certificate', body:
       '<p>Approving <b>' + esc(a.ResourceTitle) + '</b> will:</p><ul><li>generate a permanent CU code in the format <span class="mono">' + esc(preview) + '</span>,</li>' +
-      '<li>create the PDF Certificate of Utilization,</li><li>publish the record in the public catalog, and</li><li>email the certificate to ' + esc(a.ApplicantEmail) + '.</li></ul>' +
+      '<li>create the PDF Certificate of Utilization,</li><li>publish the record in the public catalog' + (a.ApplicantEmail ? ', and</li><li>email the certificate to ' + esc(a.ApplicantEmail) + '.</li></ul>' : '.</li></ul>') +
       '<div class="field"><label for="tpl">Certificate template</label>' + templateSelect(a.templates || [], '', 'tpl') + '<div class="hint">Manage templates and logos in Settings.</div></div>' +
       '<div class="field"><label for="rlink">Public resource link (optional)</label><input class="input" id="rlink" placeholder="https://… (e.g. LR portal or public Drive link)"><div class="hint">Shown on the public catalog record.</div></div>' +
+      (override ? '<div class="callout warn" style="margin-bottom:14px"><b>Override.</b> This application is at <b>' + esc(a.Status) + '</b>. Approving now skips the remaining review steps.</div>' +
+        '<div class="field"><label for="oreason">Reason for the override <span class="req">*</span></label><textarea class="input" id="oreason" style="min-height:80px" placeholder="e.g. Cleared by the Division QA Team, QA Memo No. 12, s. 2026">' + esc(note) + '</textarea><div class="hint">Recorded in the audit log and the evaluation notes.</div></div>' : '') +
       '<p class="small muted">CU codes are never reused, even if a certificate is later revoked.</p>',
-      footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-gold" id="do-approve">Approve & issue</button>',
+      footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-gold" id="do-approve">' + (override ? 'Override & issue CU number' : 'Approve & issue') + '</button>',
       onOpen: function (bg, close) {
         $('#do-approve', bg).onclick = function () {
           var b = this; busy(b, true, 'Issuing certificate…');
-          api('changeStatus', S.token, a.ApplicationID, 'Approved', note, { resourceLink: $('#rlink', bg).value, templateId: $('#tpl', bg) ? $('#tpl', bg).value : '' }).then(function (r) {
+          var why = override ? $('#oreason', bg).value.trim() : note;
+          if (override && why.length < 10) { busy(b, false); toast('Write the reason for the override.', true); $('#oreason', bg).focus(); return; }
+          api('changeStatus', S.token, a.ApplicationID, 'Approved', why, { resourceLink: $('#rlink', bg).value, templateId: $('#tpl', bg) ? $('#tpl', bg).value : '', override: !!override }).then(function (r) {
             close();
             modal({ title: 'Certificate issued', body: '<div style="text-align:center"><p class="section-label">Certificate of Utilization Code</p>' +
               '<div class="mono issued-code">' + esc(r.CU_Code) + '</div>' +
@@ -1553,18 +1618,21 @@ window.__WEB__ = true;
     var tab = S.params.tab || 'action';
     main.innerHTML = '<div class="wrap"><div class="page-head"><div><h1>Review Queue</h1><p>' + (isAdmin() ? 'All Certificate of Utilization applications.' : 'Applications assigned to you and unassigned applications you can claim.') + '</p></div>' +
       '<label class="sr-only" for="qs">Filter</label><input class="input" id="qs" placeholder="Filter by title, applicant, ID…" style="max-width:300px"></div><div id="body">' + skeleton('table') + '</div></div>';
-    return api('reviewQueue', S.token).then(function (rows) {
+    return api('reviewQueue', S.token).then(function (res) {
       if (!alive()) return;
-      var mine = false;
+      var base = res, cur = res, mine = false, searchId = 0, timer = null;
+      function countFor(x) { return x[2] ? x[2].reduce(function (n, st) { return n + (base.counts[st] || 0); }, 0) : base.total; }
       function draw() {
+        var rows = cur.rows;
         var t = QUEUE_TABS.filter(function (x) { return x[0] === tab; })[0] || QUEUE_TABS[0];
-        var q = ($('#qs').value || '').toLowerCase();
-        var list = rows.filter(function (r) { return (!t[2] || t[2].indexOf(r.Status) !== -1) && (!mine || r.Mine) && (!q || [r.ApplicationID, r.ResourceTitle, r.Applicant, r.School, r.SubjectArea, r.CU_Code].join(' ').toLowerCase().indexOf(q) !== -1); });
+        var list = rows.filter(function (r) { return (!t[2] || t[2].indexOf(r.Status) !== -1) && (!mine || r.Mine); });
         if (['approved', 'closed', 'all'].indexOf(tab) !== -1) list = list.slice().reverse();
+        var limited = !cur.searched && (tab === 'approved' || tab === 'closed' || tab === 'all') && countFor(t) > list.length;
         $('#body').innerHTML = '<div class="tabs">' + QUEUE_TABS.map(function (x) {
-          var n = rows.filter(function (r) { return !x[2] || x[2].indexOf(r.Status) !== -1; }).length;
-          return '<button class="tab ' + (x[0] === tab ? 'active' : '') + '" data-tab="' + x[0] + '">' + x[1] + '<span class="cnt">' + n + '</span></button>';
+          return '<button class="tab ' + (x[0] === tab ? 'active' : '') + '" data-tab="' + x[0] + '">' + x[1] + '<span class="cnt">' + countFor(x) + '</span></button>';
         }).join('') + '</div>' +
+          (cur.searched ? '<p class="small muted" style="margin:-4px 0 12px">Search results across all applications' + (rows.length >= 100 ? ' (first 100 — type more words to narrow down)' : '') + '.</p>' : '') +
+          (limited ? '<p class="small muted" style="margin:-4px 0 12px">Showing the ' + (base.pageSize || 20) + ' most recent finished applications. Type in the filter box to search all of them.</p>' : '') +
           (!isAdmin() ? '<label class="check small" style="margin-bottom:12px"><input type="checkbox" id="mine" ' + (mine ? 'checked' : '') + '><span>Only show applications assigned to me</span></label>' : '') +
           (list.length ? '<div class="card table-wrap"><table class="tbl stack"><thead><tr><th>ID</th><th>Resource</th><th>Subject / Grade</th><th>Status</th><th>Reviewer</th><th>Waiting</th></tr></thead><tbody>' +
             list.map(function (r) {
@@ -1579,7 +1647,14 @@ window.__WEB__ = true;
         $$('[data-tab]').forEach(function (b) { b.onclick = function () { tab = b.dataset.tab; S.params.tab = tab; draw(); }; });
         var m = $('#mine'); if (m) m.onchange = function () { mine = m.checked; draw(); };
       }
-      $('#qs').oninput = draw;
+      $('#qs').oninput = function () { // searched on the server, so finished applications beyond the latest 20 are found too
+        clearTimeout(timer);
+        var q = $('#qs').value.trim(), my = ++searchId;
+        if (!q) { cur = base; draw(); return; }
+        timer = setTimeout(function () {
+          api('reviewQueue', S.token, { q: q }).then(function (r) { if (alive() && my === searchId) { cur = r; draw(); } }).catch(function (e) { toast(e.message, true); });
+        }, 350);
+      };
       draw();
     });
   }
@@ -1620,13 +1695,13 @@ window.__WEB__ = true;
   function vCertificates(main, alive) {
     main.innerHTML = '<div class="wrap"><div class="page-head"><div><h1>Certificates</h1><p>Every CU code ever issued. Codes are permanent; revoked certificates stay on record.</p></div>' +
       '<label class="sr-only" for="qs">Filter</label><input class="input" id="qs" placeholder="Filter by code, title, developer…" style="max-width:300px"></div><div id="body">' + skeleton('table') + '</div></div>';
-    return api('certificatesPage', S.token).then(function (res) {
+    return api('certificatesPage', S.token, '', 0).then(function (res) {
       if (!alive()) return;
-      var rows = res.rows, templates = res.templates || [];
+      var rows = res.rows, templates = res.templates || [], page = res, q = '', searchId = 0, timer = null;
       function draw() {
-        var q = ($('#qs').value || '').toLowerCase();
-        var list = rows.filter(function (r) { return !q || [r.CU_Code, r.ResourceTitle, r.Developers, r.ApplicationID].join(' ').toLowerCase().indexOf(q) !== -1; });
-        $('#body').innerHTML = list.length ? '<div class="card table-wrap"><table class="tbl stack"><thead><tr><th>CU Code</th><th>Resource</th><th>Issued</th><th>Status</th><th></th></tr></thead><tbody>' +
+        var list = rows;
+        $('#body').innerHTML = '<p class="small muted" style="margin:0 0 12px">' + (q ? page.total + ' match' + (page.total === 1 ? '' : 'es') + ' for “' + esc(q) + '”' : 'Newest first · showing ' + rows.length + ' of ' + page.issued + ' certificates') + '</p>' +
+          (list.length ? '<div class="card table-wrap"><table class="tbl stack"><thead><tr><th>CU Code</th><th>Resource</th><th>Issued</th><th>Status</th><th></th></tr></thead><tbody>' +
           list.map(function (r) {
             return '<tr><td data-l="CU Code" class="mono small" style="font-weight:600;color:var(--navy)">' + esc(r.CU_Code) + '</td>' +
               '<td class="t-title"><a href="#" data-go="app" data-id="' + esc(r.ApplicationID) + '" style="text-decoration:none">' + esc(r.ResourceTitle) + '</a><div class="muted small" style="font-weight:400">' + esc(r.Developers) + '</div>' +
@@ -1638,7 +1713,12 @@ window.__WEB__ = true;
               '<button class="btn btn-ghost btn-sm" data-go="cu" data-code="' + esc(r.CU_Code) + '">Record</button>' +
               (isAdmin() && r.Status !== 'Revoked' ? '<button class="btn btn-ghost btn-sm" data-link="' + esc(r.CU_Code) + '">Link</button><button class="btn btn-ghost btn-sm" data-regen="' + esc(r.CU_Code) + '" data-tpl="' + esc(r.TemplateID) + '">Regenerate</button><button class="btn btn-danger btn-sm" data-revoke="' + esc(r.CU_Code) + '">Revoke</button>' : '') +
               '</div></td></tr>';
-          }).join('') + '</tbody></table></div>' : '<div class="card empty"><h3>No certificates yet</h3><p>Certificates appear here once applications are approved.</p></div>';
+          }).join('') + '</tbody></table></div>' + (page.more ? '<div class="more-row"><button class="btn btn-ghost" id="more">Show ' + Math.min(20, page.total - rows.length) + ' more</button></div>' : '')
+          : '<div class="card empty"><h3>' + (q ? 'No matching certificates' : 'No certificates yet') + '</h3><p>' + (q ? 'Check the code or title and try again.' : 'Certificates appear here once applications are approved.') + '</p></div>');
+        var mb = $('#more'); if (mb) mb.onclick = function () {
+          busy(mb, true, 'Loading…');
+          api('certificatesPage', S.token, q, rows.length).then(function (n) { if (!alive()) return; rows = rows.concat(n.rows); page = n; draw(); }).catch(function (e) { busy(mb, false); toast(e.message, true); });
+        };
         $$('[data-revoke]').forEach(function (b) {
           b.onclick = function () {
             var code = b.dataset.revoke;
@@ -1662,11 +1742,19 @@ window.__WEB__ = true;
             var code = b.dataset.link;
             modal({ title: 'Public resource link', body: '<div class="field"><label for="ln">Link shown on the catalog record for ' + esc(code) + '</label><input class="input" id="ln" placeholder="https://…"></div>',
               footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="do">Save</button>',
-              onOpen: function (bg, close) { $('#do', bg).onclick = function () { api('updateCatalogLink', S.token, code, $('#ln', bg).value).then(function () { close(); toast('Link saved'); }).catch(function (e) { toast(e.message, true); }); }; } });
+              onOpen: function (bg, close) { $('#do', bg).onclick = function () { var x = this; busy(x, true, 'Checking link…'); api('updateCatalogLink', S.token, code, $('#ln', bg).value).then(function (r) { close(); if (r && r.warning) toast('Link saved. ' + r.warning, true); else toast('Link saved'); }).catch(function (e) { busy(x, false); toast(e.message, true); }); }; } });
           };
         });
       }
-      $('#qs').oninput = draw; draw();
+      $('#qs').oninput = function () {
+        clearTimeout(timer);
+        var my = ++searchId;
+        timer = setTimeout(function () {
+          q = $('#qs').value.trim();
+          api('certificatesPage', S.token, q, 0).then(function (n) { if (alive() && my === searchId) { rows = n.rows; page = n; draw(); } }).catch(function (e) { toast(e.message, true); });
+        }, 350);
+      };
+      draw();
     });
   }
 
@@ -1729,7 +1817,7 @@ window.__WEB__ = true;
   // ------------------------------------------------------------------
   // ADMIN: settings (branding, certificate logos, templates, details)
   // ------------------------------------------------------------------
-  var SETTINGS_TABS = [['branding', 'App logo'], ['logos', 'Certificate logos'], ['templates', 'Certificate templates'], ['details', 'Details & signatories'], ['workflow', 'Workflow'], ['signin', 'Sign-in code']];
+  var SETTINGS_TABS = [['branding', 'App logo'], ['logos', 'Certificate logos'], ['templates', 'Certificate templates'], ['details', 'Details & signatories'], ['workflow', 'Workflow'], ['signin', 'Sign-in code'], ['storage', 'Drive storage'], ['register', 'Direct registration']];
 
   function vSettings(main, alive) {
     var tab = S.params.tab || 'branding';
@@ -1821,6 +1909,52 @@ window.__WEB__ = true;
         $$('[data-prev]').forEach(function (b) { b.onclick = function () { busy(b, true, 'Rendering…'); api('previewTemplate', S.token, b.dataset.prev).then(function (r) { busy(b, false); openUrl(r.url); }).catch(function (e) { busy(b, false); toast(e.message, true); }); }; });
       }
 
+      if (tab === 'register') { drawRegister(body, st); }
+
+      if (tab === 'storage') {
+        var who = st.ownerEmail || 'the Google account that deployed the app';
+        body.innerHTML = '<div class="card card-pad"><h2>Drive storage</h2><p class="muted" style="margin-top:-4px;max-width:62ch">Choose the Google Drive folders where the registry saves files. A shared drive or a folder owned by the LRMS office works best, so files stay with the office when staff change.</p>' +
+          '<div class="callout" style="margin:14px 0 4px"><b>Files are saved by:</b> <span class="mono">' + esc(who) + '</span><br><span class="small">Share each folder with this account as <b>Editor</b> (on a shared drive: <b>Content manager</b>) before pasting its link.</span></div>' +
+          (st.storage || []).map(function (f) {
+            return '<div class="store-row"><div class="store-head"><h3>' + esc(f.label) + '</h3><span class="badge ' + (f.custom ? 'b-Approved' : 'b-Draft') + '">' + (f.custom ? 'Your folder' : 'Automatic') + '</span></div>' +
+              '<p class="small muted" style="margin:2px 0 10px">' + esc(f.hint) + '</p>' +
+              '<div class="store-now">' + (f.ok ? (f.url ? 'Now saving to <a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.name) + ' ↗</a>' : 'Now: ' + esc(f.name)) : errBox('This folder can no longer be opened. Share it with ' + who + ' again or paste another folder.')) + '</div>' +
+              '<div class="field" style="margin-top:12px"><label for="st-' + f.key + '">Folder link</label><input class="input" type="url" id="st-' + f.key + '" value="' + esc(f.link) + '" placeholder="https://drive.google.com/drive/folders/…"></div>' +
+              '<div id="sm-' + f.key + '"></div><div class="btn-row"><button class="btn btn-primary" data-store="' + f.key + '">Check & save folder</button>' +
+              (f.custom ? '<button class="btn btn-ghost" data-store-auto="' + f.key + '">Use the automatic folder</button>' : '') + '</div></div>';
+          }).join('') +
+          '<details class="help" style="margin-top:18px"><summary>How to connect a folder</summary><ol>' +
+          '<li>In Google Drive, create the folder (or open the shared drive folder) for the registry.</li>' +
+          '<li>Right-click it → <b>Share</b> → add <span class="mono">' + esc(who) + '</span> as <b>Editor</b> (shared drive: <b>Content manager</b>). Skip this if that account already owns the folder.</li>' +
+          '<li>Right-click → <b>Share</b> → <b>Copy link</b>, paste it above and click <b>Check & save folder</b>. The registry saves and removes a small test file to make sure it can write there.</li></ol>' +
+          '<p>Only new files go to the new folder; earlier certificates stay where they are and their links keep working. Applicants\' requirement folders are their own Drive links and are not moved.</p></details></div>' +
+          '<div class="card card-pad" style="margin-top:16px"><h2>Check certificate links</h2><p class="muted" style="margin-top:-4px;max-width:62ch">Makes sure every certificate PDF still exists and opens for anyone with the link — from the app, the public record, emails and the Google Sheet. PDFs that lost public access are shared again automatically.</p>' +
+          '<div id="lk-out"></div><button class="btn btn-primary" id="lk-go">Check all certificate links</button></div>';
+        var saveStore = function (key, val, b) {
+          busy(b, true, val ? 'Checking folder…' : 'Saving…'); var patch = {}; patch[key] = val;
+          api('saveSettings', S.token, patch).then(function () { toast(val ? 'Folder connected' : 'Using the automatic folder'); render(); })
+            .catch(function (e) { busy(b, false); $('#sm-' + key).innerHTML = errBox(e); });
+        };
+        $$('[data-store]', body).forEach(function (b) { b.onclick = function () { var k = b.dataset.store, v = $('#st-' + k).value.trim(); if (!v) { $('#sm-' + k).innerHTML = errBox('Paste a Google Drive folder link first.'); return; } saveStore(k, v, b); }; });
+        $$('[data-store-auto]', body).forEach(function (b) { b.onclick = function () { saveStore(b.dataset.storeAuto, '', b); }; });
+        $('#lk-go', body).onclick = function () {
+          var b = this, tot = { checked: 0, fixed: 0, missing: [], restricted: [] };
+          busy(b, true, 'Checking…');
+          (function step(from) {
+            api('checkLinks', S.token, from).then(function (r) {
+              tot.checked += r.checked; tot.fixed += r.fixed; tot.missing = tot.missing.concat(r.missing); tot.restricted = tot.restricted.concat(r.restricted);
+              if (r.next !== null && r.next !== undefined) { $('#lk-out').innerHTML = '<p class="small muted">Checked ' + r.next + ' of ' + r.total + '…</p>'; return step(r.next); }
+              busy(b, false);
+              var ok = !tot.missing.length && !tot.restricted.length;
+              $('#lk-out').innerHTML = '<div class="callout ' + (ok ? 'ok' : 'warn') + '" style="margin-bottom:14px"><b>' + tot.checked + ' certificate' + (tot.checked === 1 ? '' : 's') + ' checked.</b> ' +
+                (tot.fixed ? tot.fixed + ' PDF' + (tot.fixed === 1 ? ' was' : 's were') + ' shared again. ' : '') + (ok ? 'Every link opens.' : '') +
+                (tot.missing.length ? '<br>PDF missing — use <b>Regenerate</b> on the Certificates page: <span class="mono">' + tot.missing.map(esc).join(', ') + '</span>' : '') +
+                (tot.restricted.length ? '<br>Could not be made public (Workspace sharing policy): <span class="mono">' + tot.restricted.map(esc).join(', ') + '</span>' : '') + '</div>';
+            }).catch(function (e) { busy(b, false); $('#lk-out').innerHTML = errBox(e); });
+          })(0);
+        };
+      }
+
       if (tab === 'signin') {
         body.innerHTML = '<div class="card card-pad"><h2>Your sign-in code</h2>' + changeCodeForm('sc') +
           '<details class="help" style="margin-top:18px"><summary>Other staff and lost codes</summary><ul><li>Issue a new code for a reviewer or another Super Admin from <a href="#" data-go="users">Users → New code</a>.</li>' +
@@ -1853,6 +1987,123 @@ window.__WEB__ = true;
         });
       }
     });
+  }
+
+  // ---- Direct registration: material already quality assured → next CU number ----
+  // The file goes up in the background as soon as it is chosen; registering only claims it.
+  function uplHtml(R) {
+    var u = R.up; if (!u) return '';
+    if (u.state === 'uploading') return '<div class="upl" role="status"><span>Uploading ' + esc(R.file.name) + '…</span><div class="bar"><i></i></div></div>';
+    if (u.state === 'done') return '<div class="upl done" role="status"><span>✓ Uploaded</span><div class="bar"><i></i></div><span class="muted small">' + (u.secs ? u.secs + ' s' : '') + '</span></div>';
+    return '<div class="upl fail" role="alert">Upload failed: ' + esc(u.error) + ' — choose the file again.</div>';
+  }
+  function startUpload(file, R) {
+    var t0 = Date.now(), up = { state: 'uploading' };
+    R.up = up;
+    var paint = function () { if (R.up === up) { var el = document.getElementById('r-upl'); if (el) el.innerHTML = uplHtml(R); } };
+    up.p = new Promise(function (res, rej) {
+      var rd = new FileReader();
+      rd.onload = function () { res(String(rd.result).split(',')[1]); };
+      rd.onerror = function () { rej(new Error('Could not read the file from this device')); };
+      rd.readAsDataURL(file);
+    }).then(function (data) {
+      return api('uploadMaterial', S.token, { name: file.name, mimeType: file.type || 'application/octet-stream', data: data });
+    }).then(function (r) { up.state = 'done'; up.id = r.uploadId; up.secs = Math.max(1, Math.round((Date.now() - t0) / 1000)); paint(); return r.uploadId; },
+      function (e) { up.state = 'failed'; up.error = e.message || String(e); paint(); return null; });
+  }
+  var REG = null;
+  function regBlank() { return { developers: [{ first: '', mi: '', last: '', position: '' }], mode: 'upload', file: null }; }
+  function drawRegister(body, st) {
+    if (!REG) REG = regBlank();
+    var L = S.cfg.lists, R = REG;
+    var sel = function (id, list, label, req) { return '<div class="field"><label for="r-' + id + '">' + label + (req ? ' <span class="req">*</span>' : '') + '</label><select class="input" id="r-' + id + '" data-r="' + id + '">' + opts(list, R[id], 'Select…') + '</select></div>'; };
+    var inp = function (id, label, req, attrs, hint) { return '<div class="field"><label for="r-' + id + '">' + label + (req ? ' <span class="req">*</span>' : '') + '</label><input class="input" id="r-' + id + '" data-r="' + id + '" value="' + esc(R[id] || '') + '" ' + (attrs || '') + '>' + (hint ? '<div class="hint">' + hint + '</div>' : '') + '</div>'; };
+    var maxMb = (st.fields.filter(function (f) { return f.key === 'MAX_UPLOAD_MB'; })[0] || { value: '20' }).value;
+    body.innerHTML = '<div class="card card-pad reg"><div class="reg-head"><div><h2 style="margin:0">Direct registration</h2>' +
+      '<p class="muted" style="margin:6px 0 0;max-width:60ch">For a learning resource that has already passed quality assurance outside this system. Enter its details and attach the file; the registry assigns the next CU number, creates the certificate and lists it in the public catalog. No applicant review steps.</p></div>' +
+      '<div class="next-no"><p class="kicker" style="margin:0 0 8px">Next CU number</p><div id="r-next"><span class="muted small">Checking…</span></div></div></div>' +
+      '<div id="r-msg"></div>' +
+      '<fieldset class="reg-sec"><legend>Learning resource</legend>' + inp('resourceTitle', 'Title', true, 'maxlength="300"') +
+      '<div class="grid g2">' + sel('resourceType', L.ResourceType, 'Resource type', true) + sel('learningResourceType', L.LearningResourceType, 'Learning resource type') + '</div>' +
+      '<div class="grid g2">' + sel('subjectArea', L.SubjectArea, 'Subject area', true) + sel('gradeLevel', L.GradeLevel, 'Grade level', true) + '</div>' +
+      '<div class="grid g2">' + sel('language', L.Language, 'Language') + sel('license', L.License, 'Copyright / license') + '</div>' +
+      inp('keywords', 'Keywords', false, 'maxlength="300"') +
+      '<div class="field"><label for="r-abstract">Abstract</label><textarea class="input" id="r-abstract" data-r="abstract" style="min-height:90px" maxlength="3000">' + esc(R.abstract || '') + '</textarea></div></fieldset>' +
+      '<fieldset class="reg-sec"><legend>Developers</legend><div id="r-devs">' + R.developers.map(function (dv, i) {
+        return '<div class="dev-card" data-i="' + i + '"><div class="dev-head"><b>Developer ' + (i + 1) + '</b>' + (R.developers.length > 1 ? '<button type="button" class="linkbtn small" data-rrm="' + i + '">Remove</button>' : '') + '</div>' +
+          '<div class="dev-grid"><input class="input" data-k="first" placeholder="First name" value="' + esc(dv.first) + '" aria-label="First name"><input class="input" data-k="mi" placeholder="M.I." maxlength="4" value="' + esc(dv.mi) + '" aria-label="Middle initial">' +
+          '<input class="input" data-k="last" placeholder="Last name" value="' + esc(dv.last) + '" aria-label="Last name"><input class="input" data-k="position" placeholder="Position" value="' + esc(dv.position) + '" aria-label="Position"></div></div>';
+      }).join('') + '</div><button type="button" class="btn btn-ghost btn-sm" id="r-add">+ Add developer</button>' +
+      '<div class="grid g2" style="margin-top:14px">' + inp('school', 'School', true, 'maxlength="200"') + inp('district', 'District', false, 'maxlength="200"') + '</div></fieldset>' +
+      '<fieldset class="reg-sec"><legend>Quality assurance already done</legend><div class="grid g2">' + sel('qaBy', L.QABody, 'Quality assured by', true) + inp('qaDate', 'Date cleared', false, 'type="date"') + '</div>' +
+      inp('qaReference', 'Reference', false, 'maxlength="200" placeholder="e.g. QA Memo No. 45, s. 2026"', 'Memo, evaluation report or other proof. Shown to staff and printed in the audit log.') +
+      '<div class="field"><label for="r-remarks">Remarks</label><input class="input" id="r-remarks" data-r="remarks" value="' + esc(R.remarks || '') + '" maxlength="1000"></div></fieldset>' +
+      '<fieldset class="reg-sec"><legend>The material</legend><div class="seg-toggle" role="radiogroup" aria-label="How to attach the material">' +
+      '<label><input type="radio" name="r-mode" value="upload" ' + (R.mode === 'upload' ? 'checked' : '') + '> Upload the file</label><label><input type="radio" name="r-mode" value="link" ' + (R.mode === 'link' ? 'checked' : '') + '> Paste a link</label></div>' +
+      (R.mode === 'upload' ? '<label class="dropzone" id="r-dz"><input type="file" id="r-file" class="sr-only" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.odp,.ods,.rtf,.txt,.epub,.png,.jpg,.jpeg,.gif,.webp,.mp4,.m4v,.mov,.webm,.mp3,.m4a,.wav,.ogg,.zip,.apk">' +
+        '<b>' + (R.file ? esc(R.file.name) + ' · ' + (R.file.size / 1048576).toFixed(1) + ' MB' : 'Choose a file') + '</b><span class="hint">' + (R.file ? 'Click to choose a different file' : 'PDF, Word, PowerPoint, video, audio, EPUB, ZIP or APK · up to ' + esc(maxMb) + ' MB') + '</span></label>' +
+        '<div id="r-upl">' + uplHtml(R) + '</div>' +
+        '<p class="hint" style="margin:6px 0 0">Uploading starts as soon as you choose the file, so you can keep filling in the form. Saved privately in the registered-materials Drive folder.</p>' +
+        '<label class="check" style="margin-top:10px"><input type="checkbox" id="r-publish" ' + (R.publishFile ? 'checked' : '') + '><span>Let the public download this file from the registry record</span></label>'
+        : inp('fileLink', 'Link to the material', true, 'type="url" placeholder="https://drive.google.com/…"') +
+          inp('resourceLink', 'Public link shown on the record', false, 'type="url" placeholder="Optional — leave blank to keep the material private"')) + '</fieldset>' +
+      '<fieldset class="reg-sec"><legend>Send the certificate (optional)</legend><div class="grid g2">' + inp('contactName', 'Contact person', false, 'maxlength="120"') +
+      inp('contactEmail', 'Email', false, 'type="email" maxlength="160"', 'The certificate PDF is emailed here.') + '</div>' +
+      '<div class="field" style="max-width:420px"><label for="r-tpl">Certificate template</label>' + templateSelect(st.templates, '', 'r-tpl') + '</div></fieldset>' +
+      '<div class="btn-row form-nav"><button class="btn btn-ghost" id="r-clear">Clear form</button><button class="btn btn-gold" id="r-go">Register & issue CU number</button></div></div>';
+
+    api('nextCuPreview', S.token).then(function (r) { var el = $('#r-next'); if (el) el.innerHTML = codeParts(r.code); }).catch(function () { var el = $('#r-next'); if (el) el.textContent = '—'; });
+    function save() {
+      $$('[data-r]', body).forEach(function (el) { R[el.dataset.r] = el.value; });
+      $$('#r-devs .dev-card', body).forEach(function (row) { var i = +row.dataset.i; $$('input', row).forEach(function (x) { R.developers[i][x.dataset.k] = x.value.trim(); }); });
+      var pub = $('#r-publish', body); if (pub) R.publishFile = pub.checked;
+      R.templateId = $('#r-tpl', body).value;
+    }
+    $$('input[name="r-mode"]', body).forEach(function (r) { r.onchange = function () { save(); R.mode = r.value; drawRegister(body, st); }; });
+    $('#r-add', body).onclick = function () { save(); R.developers.push({ first: '', mi: '', last: '', position: '' }); drawRegister(body, st); };
+    $$('[data-rrm]', body).forEach(function (b) { b.onclick = function () { save(); R.developers.splice(+b.dataset.rrm, 1); drawRegister(body, st); }; });
+    $('#r-clear', body).onclick = function () { askConfirm('Clear the form?', 'Everything you entered here will be removed.', 'Clear', true).then(function (y) { if (y) { REG = regBlank(); drawRegister(body, st); } }); };
+    var fi = $('#r-file', body);
+    if (fi) fi.onchange = function () {
+      var file = fi.files[0]; if (!file) return;
+      if (file.size > Number(maxMb) * 1048576) { $('#r-msg').innerHTML = errBox('That file is ' + (file.size / 1048576).toFixed(1) + ' MB. The limit is ' + maxMb + ' MB — put it in Google Drive and paste the link instead.'); return; }
+      if (!/\.(pdf|docx?|pptx?|xlsx?|odt|odp|ods|rtf|txt|epub|png|jpe?g|gif|webp|mp4|m4v|mov|webm|mp3|m4a|wav|ogg|zip|apk)$/i.test(file.name)) { $('#r-msg').innerHTML = errBox('That file type is not accepted. Use PDF, Word, PowerPoint, Excel, images, audio, video, EPUB, ZIP or APK.'); return; }
+      save(); $('#r-msg').innerHTML = '';
+      R.file = { name: file.name, size: file.size };
+      startUpload(file, R);
+      drawRegister(body, st);
+    };
+    $('#r-go', body).onclick = function () {
+      save();
+      var miss = [];
+      if (!String(R.resourceTitle || '').trim()) miss.push('title'); if (!R.resourceType) miss.push('resource type'); if (!R.subjectArea) miss.push('subject area'); if (!R.gradeLevel) miss.push('grade level');
+      if (!R.developers.some(function (x) { return x.first && x.last; })) miss.push('a developer'); if (!String(R.school || '').trim()) miss.push('school'); if (!R.qaBy) miss.push('who quality assured it');
+      if (R.mode === 'upload' && !R.file) miss.push('the file');
+      if (R.mode === 'upload' && R.up && R.up.state === 'failed') { $('#r-msg').innerHTML = errBox('The file did not upload (' + R.up.error + '). Choose the file again.'); window.scrollTo(0, 0); return; } if (R.mode === 'link' && !/^https:\/\//i.test(String(R.fileLink || '').trim())) miss.push('an https:// link to the material');
+      if (miss.length) { $('#r-msg').innerHTML = errBox('Please provide ' + miss.join(', ') + '.'); window.scrollTo(0, 0); return; }
+      modal({ title: 'Register and issue a CU number?', body: '<p><b>' + esc(R.resourceTitle) + '</b> will receive the next CU number, a certificate, and a public registry record right away.</p>' +
+        '<p class="small muted">Quality assured by ' + esc(R.qaBy) + (R.qaReference ? ' · ' + esc(R.qaReference) : '') + '. This is recorded in the audit log.</p>',
+        footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-gold" id="do">Register & issue</button>',
+        onOpen: function (bg, close) {
+          $('#do', bg).onclick = function () {
+            var x = this, upl = R.mode === 'upload' && R.up;
+            busy(x, true, upl && upl.state === 'uploading' ? 'Finishing upload…' : 'Issuing…');
+            var payload = {}; Object.keys(R).forEach(function (k) { if (k !== 'file' && k !== 'mode' && k !== 'up') payload[k] = R[k]; });
+            if (R.mode === 'upload') { payload.fileLink = ''; payload.resourceLink = ''; } else payload.publishFile = false;
+            payload.developers = R.developers.filter(function (d) { return d.first && d.last; });
+            (upl ? upl.p : Promise.resolve(null)).then(function (id) {
+              if (upl) { if (!id) throw new Error('The file did not upload (' + (upl.error || 'unknown error') + '). Choose the file again.'); payload.uploadId = id; busy(x, true, 'Issuing…'); }
+              return api('registerDirect', S.token, payload, null);
+            }).then(function (r) {
+              close(); REG = regBlank(); drawRegister(body, st);
+              modal({ title: 'Registered', body: '<p class="section-label">CU number issued</p>' + codeParts(r.CU_Code, true) +
+                '<p style="margin-top:16px">The certificate was created' + (payload.contactEmail ? ' and is being emailed to ' + esc(payload.contactEmail) : '') + '. The record is live in the public catalog.</p>' + (r.warning ? errBox(r.warning) : ''),
+                footer: (r.CertificatePDF_URL ? '<button class="btn btn-ghost" data-open="' + esc(r.CertificatePDF_URL) + '">Certificate PDF</button>' : '') +
+                  '<button class="btn btn-ghost" data-close data-go="cu" data-code="' + esc(r.CU_Code) + '">Public record</button><button class="btn btn-primary" data-close>Register another</button>' });
+            }).catch(function (e) { busy(x, false); close(); $('#r-msg').innerHTML = errBox(e); window.scrollTo(0, 0); });
+          };
+        } });
+    };
   }
 
   function templateModal(t, st) {
