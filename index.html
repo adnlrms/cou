@@ -6,8 +6,10 @@
 <title>Certificate of Utilization Registry</title>
 <meta name="description" content="Official registry of learning resources issued a Certificate of Utilization. Search by title, developer, subject or CU code, apply for a certificate, or track an application.">
 <meta name="theme-color" content="#0B2545">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-L4VwO6wK/J4VUMJKRmBqaK/MkVEG9UzpkA8D6wjyZZQ=' 'sha256-RH29iWv/tOQt6FFHu4anU70u1a/woGcOIABkBc2xGL4=' 'sha256-2ULBSxmeYCKvATuC5tExUz3O7HrOnaNUvTn8xQv/lTo=' 'sha256-8flGRP1zwwgUib/hbPaWVR3FNsZ2oTzBEqWo3NoEKqw=' 'sha256-4/OBdFsU5L2rN+LrtGerM6yy9i8yJsXOrsW934D6R3c=' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://drive.google.com blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="same-origin">
+<!-- ▼▼ PASTE YOUR APPS SCRIPT WEB APP URL between the quotes below (Deploy → Manage deployments → Web app URL, ends with /exec). Change nothing else in this file. ▼▼ -->
+<meta name="cu-api-url" content="https://script.google.com/macros/s/AKfycbycPX-ICzQv0wOceM9tjW6XNv8W9wCd0QbrzyqC2SHZ274nNF10NbQX5csDwPVFpTvj/exec">
 <style>/* inside another site's frame (clickjacking) or a file-preview pane: show only a link to open the registry in its own tab */
 html.framed body>*:not(.framed-note){display:none!important}
 .framed-note{display:none}
@@ -18,7 +20,8 @@ html.framed .framed-note a{display:inline-block;margin-top:12px;background:#0E2A
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" media="print" id="gfonts" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600;700&display=swap">
+<script>(function(){var l=document.getElementById('gfonts');if(!l)return;if(l.sheet)l.media='all';else l.addEventListener('load',function(){l.media='all';});})();</script>
 <style>
 /* Layout concept: "Registry ledger" — a left-aligned search desk beside a CU-number key,
    results ruled like a ledger, records filed like catalog cards, statuses as dated rubber stamps. */
@@ -522,6 +525,35 @@ footer.site .inner{max-width:1240px;margin:0 auto;padding:22px max(20px,env(safe
 .upl.fail{color:var(--bad)}
 @keyframes upl{0%{left:-40%}100%{left:100%}}
 @media (prefers-reduced-motion:reduce){.upl .bar i{animation:none;width:100%;opacity:.5}}
+
+/* Signed certificate upload */
+.sg-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
+@media (max-width:760px){.sg-grid{grid-template-columns:minmax(0,1fr)}}
+.sg-opts{display:flex;gap:22px;flex-wrap:wrap;transition:opacity .2s}
+.sg-opts.dim{opacity:.35;pointer-events:none}
+.mini-page{position:relative;width:96px;height:128px;border:1px solid var(--rule-2);border-radius:3px;background:var(--sheet);box-shadow:0 1px 0 var(--rule),0 6px 14px -10px rgba(11,37,69,.35)}
+.mini-page::before{content:"";position:absolute;left:16px;right:16px;top:30px;height:44px;background:repeating-linear-gradient(var(--rule) 0 2px,transparent 2px 9px)}
+.spot{position:absolute;width:26px;height:26px;border:1.5px dashed var(--rule-2);border-radius:3px;background:transparent;cursor:pointer;padding:0}
+.spot:hover,.spot:focus-visible{border-color:var(--foil)}
+.spot.on{border:0;background:var(--brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7'%3E%3Cpath fill='%23fff' d='M0 0h3v3H0zM4 0h3v3H4zM0 4h3v3H0zM4 4h1v1H4zM6 6h1v1H6zM5 5h1v1H5z'/%3E%3C/svg%3E") center/16px no-repeat}
+.spot-top-left{left:6px;top:6px}.spot-top-right{right:6px;top:6px}.spot-bottom-left{left:6px;bottom:6px}.spot-bottom-right{right:6px;bottom:6px}.spot-bottom-center{left:35px;bottom:6px}
+.sg-view{border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--page);height:min(62vh,460px);overflow:hidden}
+.sg-view iframe{width:100%;height:100%;border:0;display:block;background:#fff}
+.sg-empty{height:100%;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:var(--muted);font-size:14px;text-align:center;padding:16px}
+#sg-open{display:inline-block;margin-top:8px}
+.signed-line{font-size:13px;margin:-4px 0 12px;font-weight:600}
+td .signed-line{margin:0;display:inline-block}
+.signed-line.ok{color:var(--ok)}.signed-line.todo{color:var(--foil-ink,#8a6a12)}
+/* Certificate shown on the public record */
+.record-cert{margin-top:22px}
+.cert-view{border:1px solid var(--rule);border-radius:var(--r-sm);overflow:hidden;background:var(--sheet)}
+.cert-view-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:17px;color:var(--heading)}
+.cert-view iframe{display:block;width:100%;aspect-ratio:1.414/1;min-height:260px;max-height:70vh;border:0;background:#fff}
+.cert-pending{padding:16px 18px;font-size:14px;line-height:1.5;border:1px dashed var(--rule-2);border-radius:var(--r-sm);background:var(--page)}
+
+.sec-item{border-top:1px solid var(--rule);padding:14px 0}
+.sec-item:first-child{border-top:0;padding-top:4px}
+.sec-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 </style>
 
 </head>
@@ -531,12 +563,7 @@ footer.site .inner{max-width:1240px;margin:0 auto;padding:22px max(20px,env(safe
 <div id="app"><div class="boot"><div class="spinner"></div><p>Loading the CU Registry…</p></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="modal-root"></div>
-<script>
-// ▼▼ PASTE YOUR APPS SCRIPT WEB APP URL BELOW (Deploy → Manage deployments → Web app URL, ends with /exec) ▼▼
-window.CU_CONFIG = {
-  apiUrl: 'https://script.google.com/macros/s/AKfycbwevH-j1IBVc_dkiJwbL4dJItZHc5pel_2-xsyAROkTIx-7fpNn8RVS4u2PjnjsgvUU/exec',
-};
-</script>
+
 <script>
 window.__WEB__ = true;
 (function () {
@@ -552,7 +579,11 @@ window.__WEB__ = true;
   window.__INITIAL__ = { params: q, baseUrl: location.origin + p };
 })();
 (function () {
-  var API = (window.CU_CONFIG && window.CU_CONFIG.apiUrl || '').trim();
+  // The web app address comes from <meta name="cu-api-url"> (single-file site) or config.js.
+  // Only a Google Apps Script /exec address (or the local preview) is accepted.
+  var meta = document.querySelector('meta[name="cu-api-url"]');
+  var API = ((meta && meta.getAttribute('content')) || (window.CU_CONFIG && window.CU_CONFIG.apiUrl) || '').trim();
+  if (API && !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(API) && !/^http:\/\/localhost:\d+\/api$/.test(API)) API = '';
   // Each call carries a request id. If the connection drops and the call is sent again, the server
   // recognises the id and returns the first answer instead of saving twice.
   function rid() {
@@ -705,8 +736,16 @@ window.__WEB__ = true;
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(fallback); else fallback(); } catch (e) { fallback(); }
     toast('Copied: ' + (text.length > 40 ? text.slice(0, 40) + '…' : text));
   }
+  // Images that fail to load fall back without inline handlers.
+  document.addEventListener('error', function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== 'IMG' || !t.dataset || !t.dataset.fallback) return;
+    var p = t.parentNode; if (!p) return;
+    if (t.dataset.fallback === 'seal') { p.classList.remove('has-img'); t.remove(); } else p.innerHTML = '<span>?</span>';
+  }, true);
   function openUrl(url) {
     if (!url) return;
+    if (!/^https?:\/\//i.test(url) && !(IS_DEMO && /^demo:/.test(url))) { toast('That link cannot be opened.', true); return; } // never javascript:, data: …
     if (IS_DEMO && window.__demoOpen && /^demo:/.test(url)) return window.__demoOpen(url);
     if (IS_DEMO) { toast('In the deployed app this opens: ' + url); return; }
     window.open(url, '_blank', 'noopener');
@@ -797,7 +836,7 @@ window.__WEB__ = true;
   function urlQuery(route, p) {
     if (route === 'cu') return { cu: p.code };
     if (route === 'catalog') { var q = {}; ['q', 'subject', 'grade', 'type', 'year'].forEach(function (k) { if (p[k]) q[k] = p[k]; }); return q; }
-    var o = { page: route }; if (p.id) o.id = p.id; if (p.tab) o.tab = p.tab; return o;
+    var o = { page: route }; if (p.id) o.id = p.id; if (p.tab) o.tab = p.tab; if (p.filter) o.filter = p.filter; return o;
   }
   function setUrl(route, p, replace) {
     try {
@@ -824,7 +863,7 @@ window.__WEB__ = true;
   function routeFromParams(p) {
     p = p || {};
     if (p.cu) return { route: 'cu', params: { code: String(p.cu).toUpperCase() } };
-    if (p.page) return { route: p.page, params: { id: p.id || '', key: p.key || '', tab: p.tab || '' } };
+    if (p.page) return { route: p.page, params: { id: p.id || '', key: p.key || '', tab: p.tab || '', filter: p.filter || '' } };
     return { route: 'catalog', params: { q: p.q || '', subject: p.subject || '', grade: p.grade || '', type: p.type || '', year: p.year || '' } };
   }
   function sessionLost(msg) {
@@ -851,7 +890,7 @@ window.__WEB__ = true;
   }
   function sealHtml() {
     var c = S.cfg;
-    return c.appLogoUrl ? '<div class="seal has-img"><img src="' + esc(c.appLogoUrl) + '" alt="" onerror="this.parentNode.classList.remove(\'has-img\');this.remove()"></div>' : '<div class="seal">CU</div>';
+    return c.appLogoUrl ? '<div class="seal has-img"><img src="' + esc(c.appLogoUrl) + '" alt="" data-fallback="seal"></div>' : '<div class="seal">CU</div>';
   }
   function shell() {
     var c = S.cfg;
@@ -882,6 +921,7 @@ window.__WEB__ = true;
   document.addEventListener('click', function (e) {
     var a = e.target.closest('[data-go]');
     if (a) { e.preventDefault(); var p = {}; if (a.dataset.id) p.id = a.dataset.id; if (a.dataset.code) p.code = a.dataset.code; if (a.dataset.tab) p.tab = a.dataset.tab; go(a.dataset.go, p); return; }
+    if (e.target.closest('[data-reload]')) { location.reload(); return; }
     var o = e.target.closest('[data-open]');
     if (o) { e.preventDefault(); openUrl(o.dataset.open); return; }
     var c = e.target.closest('[data-copy]');
@@ -1038,14 +1078,34 @@ window.__WEB__ = true;
     return { APA: apa, MLA: mla, Chicago: chicago };
   }
 
+  // Records already opened on this device show instantly, then refresh in the background.
+  var REC_KEY = 'cu_records_v1';
+  function recCache(code, rec) {
+    var all = {}; try { all = JSON.parse(store.get(REC_KEY) || '{}') || {}; } catch (e) { all = {}; }
+    if (rec === undefined) { var c = all[code]; if (!c) return null; c = JSON.parse(JSON.stringify(c)); delete c._t; return c; }
+    all[code] = rec; rec._t = Date.now();
+    var keys = Object.keys(all).sort(function (a, b) { return (all[b]._t || 0) - (all[a]._t || 0); });
+    keys.slice(30).forEach(function (k) { delete all[k]; });
+    try { store.set(REC_KEY, JSON.stringify(all)); } catch (e) { /* storage full: ignore */ }
+  }
+  function certEmbed(r) {
+    var url = r.CertificatePDF_URL, id = driveId(url);
+    if (!url) return '<div class="cert-pending"><b>Signed certificate in preparation.</b> The LRMS office will add the scanned, signed certificate here. This registry record is the official proof of certification in the meantime.</div>';
+    return '<div class="cert-view"><div class="cert-view-h"><span>' + (r.SignedPDF_URL ? 'Signed certificate' : 'Certificate (system-generated)') + '</span>' +
+      '<button class="btn btn-ghost btn-sm" data-open="' + esc(url) + '">Open full size ↗</button></div>' +
+      (id ? '<iframe loading="lazy" title="Certificate of Utilization ' + esc(r.CU_Code) + '" src="https://drive.google.com/file/d/' + esc(id) + '/preview" allow="fullscreen"></iframe>'
+        : '<div class="cert-pending">Open the certificate with the button above.</div>') + '</div>';
+  }
   function vRecord(main, alive) {
     var code = String(S.params.code || '').toUpperCase();
     var h = S.hints && S.hints[code];
+    var cached = recCache(code), drawn = '';
     main.innerHTML = '<div class="wrap"><div class="crumbs"><a href="#" data-go="catalog">Registry</a> › <span class="mono">' + esc(code) + '</span></div>' +
       (h ? '<div class="split" aria-busy="true"><div class="record"><div class="record-head">' + codeParts(h.CU_Code, true) + '<h1>' + esc(h.ResourceTitle) + '</h1><div class="by">' + esc(h.DeveloperName) + '</div></div>' +
         '<div class="card-pad">' + skeleton('table').replace('card card-pad', '') + '</div></div><div class="card card-pad"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:90%"></div></div></div>' : skeleton('detail')) + '</div>';
-    return api('getCatalogRecord', code).then(function (r) {
-      if (!alive()) return;
+    function show(r) {
+      var key = JSON.stringify(r);
+      if (key === drawn) return; drawn = key;
       var revoked = r.Status === 'Revoked';
       var cites = citations(r);
       var row = function (k, v, mono) { return v ? '<dt>' + k + '</dt><dd' + (mono ? ' class="mono"' : '') + '>' + v + '</dd>' : ''; };
@@ -1073,10 +1133,11 @@ window.__WEB__ = true;
         row('Date issued', longDate(r.DateIssued)) +
         row('Issuing office', esc(r.Section) + '<br><span class="muted">' + esc(r.Institution) + '</span>') +
         row('Resource link', r.ResourceLink ? '<a href="' + esc(r.ResourceLink) + '" target="_blank" rel="noopener">' + esc(r.ResourceLink) + '</a>' : '') +
-        '</dl></div>' +
+        '</dl>' + (revoked ? '' : '<section class="record-cert" aria-label="Certificate">' + certEmbed(r) + '</section>') + '</div>' +
         '<aside><div class="card side-card"><div class="verify">' + stamp(revoked ? 'Revoked' : 'Active', revoked ? r.RevokedDate : r.DateIssued) + '<div><b style="color:var(--navy)">' +
         (revoked ? 'Not valid — revoked' : 'Verified registry record') + '</b><br>' + (revoked ? 'This resource is no longer approved for utilization.' : 'This learning resource holds a valid Certificate of Utilization issued by the ' + esc(r.Section) + '.') + '</div></div>' +
-        (r.CertificatePDF_URL ? '<button class="btn btn-primary btn-block" style="margin-top:16px" data-open="' + esc(r.CertificatePDF_URL) + '">View certificate (PDF)</button>' : '') +
+        (r.CertificatePDF_URL ? '<button class="btn btn-primary btn-block" style="margin-top:16px" data-open="' + esc(r.CertificatePDF_URL) + '">' + (r.SignedPDF_URL ? 'View signed certificate' : 'View certificate (PDF)') + '</button>' : '') +
+        (!revoked && r.ResourceLink ? '<button class="btn btn-ghost btn-block" style="margin-top:8px" data-open="' + esc(r.ResourceLink) + '">Open the learning resource ↗</button>' : '') +
         '</div>' +
         '<div class="card side-card"><p class="section-label">Permalink</p><div class="mono small" style="word-break:break-all;background:var(--sheet-2);padding:10px;border-radius:6px">' + esc(permalink(r.CU_Code)) + '</div>' +
         '<button class="btn btn-ghost btn-sm" style="margin-top:10px" id="copy-link">Copy link</button></div>' +
@@ -1088,8 +1149,16 @@ window.__WEB__ = true;
       $$('#cite-tabs .tab').forEach(function (b) { b.onclick = function () { curr = b.dataset.c; $$('#cite-tabs .tab').forEach(function (x) { x.classList.toggle('active', x === b); }); $('#cite-box').innerHTML = cites[curr]; }; });
       $('#copy-cite').onclick = function () { var t = document.createElement('div'); t.innerHTML = cites[curr]; copyText(t.textContent); };
       $('#copy-link').onclick = function () { copyText(permalink(r.CU_Code)); };
+    }
+    if (cached) show(cached);
+    return api('getCatalogRecord', code).then(function (r) {
+      if (!alive()) return;
+      recCache(code, JSON.parse(JSON.stringify(r)));
+      show(r);
     }).catch(function (e) {
       if (!alive()) return;
+      if (cached && !/No certified/.test(String(e.message))) return; // offline: keep the saved copy
+      try { var all = JSON.parse(store.get(REC_KEY) || '{}'); delete all[code]; store.set(REC_KEY, JSON.stringify(all)); } catch (er) { /* ignore */ }
       main.innerHTML = '<div class="wrap narrow"><div class="crumbs"><a href="#" data-go="catalog">Registry</a> › ' + esc(code) + '</div>' +
         '<div class="card empty"><h3>No record found</h3><p>' + esc(e.message) + '</p><button class="btn btn-primary" data-go="catalog">Search the registry</button></div></div>';
     });
@@ -1433,7 +1502,8 @@ window.__WEB__ = true;
       var action = '';
       if (a.Status === 'For Revision') action = '<div class="callout warn"><b>Action needed:</b> the reviewers returned your application for revision. Read the notes, update your Drive folder, then resubmit.<div class="btn-row" style="margin-top:12px"><button class="btn btn-gold" id="revise">Revise & resubmit</button></div></div>';
       else if (a.Status === 'Approved' && cert) action = '<div class="callout ok"><b>Certified.</b> Your learning resource is registered as <span class="mono">' + esc(cert.CU_Code) + '</span>.<div class="btn-row" style="margin-top:12px">' +
-        (cert.CertificatePDF_URL ? '<button class="btn btn-primary" data-open="' + esc(cert.CertificatePDF_URL) + '">Download certificate (PDF)</button>' : '') + '<button class="btn btn-ghost" data-go="cu" data-code="' + esc(cert.CU_Code) + '">Public record</button></div></div>';
+        (cert.CertificatePDF_URL ? '<button class="btn btn-primary" data-open="' + esc(cert.CertificatePDF_URL) + '">' + (cert.Signed ? 'Download signed certificate' : 'Download certificate (PDF)') + '</button>' : '') + '<button class="btn btn-ghost" data-go="cu" data-code="' + esc(cert.CU_Code) + '">Public record</button></div>' +
+        (!cert.Signed ? '<p class="small" style="margin:10px 0 0">The signed certificate will be emailed to you and shown on the public record as soon as the LRMS office uploads it.</p>' : '') + '</div>';
       else if (a.Status === 'Rejected') action = '<div class="callout bad"><b>Not approved.</b> See the reviewer notes below. You may submit a new application after addressing them.</div>';
       else if (a.Status === 'Withdrawn') action = '<div class="callout">You withdrew this application.</div>';
 
@@ -1496,7 +1566,12 @@ window.__WEB__ = true;
         side += '<div class="cert-card" style="margin-bottom:16px"><p class="section-label">Certificate of Utilization</p><div class="code">' + esc(cert.CU_Code) + '</div>' +
           '<div class="small muted" style="margin-bottom:12px">Issued ' + d(cert.DateIssued) + ' by ' + esc(cert.IssuedBy) + ' ' + badge(cert.Status) + '</div>' +
           (cert.Status === 'Revoked' ? '<div class="small" style="color:var(--bad);margin-bottom:10px">Revoked: ' + esc(cert.RevokedReason) + '</div>' : '') +
-          '<div class="btn-row">' + (cert.CertificatePDF_URL && cert.Status !== 'Revoked' ? '<button class="btn btn-primary btn-sm" data-open="' + esc(cert.CertificatePDF_URL) + '">Open PDF</button>' : '') +
+          (cert.Status !== 'Revoked' ? '<div class="signed-line ' + (cert.SignedPDF_URL ? 'ok' : 'todo') + '">' + (cert.SignedPDF_URL ? '✓ Signed copy uploaded ' + d(cert.SignedUploadedAt) : 'Signed copy not uploaded yet') + '</div>' : '') +
+          '<div class="btn-row">' +
+          (cert.Status !== 'Revoked' && cert.SignedPDF_URL ? '<button class="btn btn-primary btn-sm" data-open="' + esc(cert.SignedPDF_URL) + '">Signed certificate</button>' : '') +
+          (cert.Status !== 'Revoked' && isAdmin() ? '<button class="btn ' + (cert.SignedPDF_URL ? 'btn-ghost' : 'btn-gold') + ' btn-sm" id="up-signed">' + (cert.SignedPDF_URL ? 'Replace signed copy' : 'Upload signed certificate') + '</button>' : '') +
+          (cert.CertificatePDF_URL && cert.Status !== 'Revoked' ? '<button class="btn btn-ghost btn-sm" data-open="' + esc(cert.CertificatePDF_URL) + '">System PDF</button>' : '') +
+          (!cert.CertificatePDF_URL && cert.Status !== 'Revoked' && isAdmin() && a.generateMode !== 'never' ? '<button class="btn btn-ghost btn-sm" id="mk-system">Create system PDF</button>' : '') +
           '<button class="btn btn-ghost btn-sm" data-go="cu" data-code="' + esc(cert.CU_Code) + '">Public record</button></div></div>';
       }
       side += '<div class="card card-pad" style="margin-bottom:16px"><p class="section-label">Reviewer</p>';
@@ -1555,6 +1630,8 @@ window.__WEB__ = true;
         var n = $('#dnote').value.trim(); if (!n) { toast('Write a note first.', true); return; }
         api('addReviewNote', S.token, a.ApplicationID, n).then(function (r) { toast('Note saved'); show(r); }).catch(function (e) { toast(e.message, true); });
       };
+      var us = $('#up-signed'); if (us) us.onclick = function () { openSignedUpload({ code: cert.CU_Code, permalink: cert.Permalink || permalink(cert.CU_Code), onDone: function () { render(); } }); };
+      var mk = $('#mk-system'); if (mk) mk.onclick = function () { var x = this; busy(x, true, 'Creating…'); api('regenerateCertificate', S.token, cert.CU_Code, '').then(function (r) { toast(r.warning || 'System certificate created', !!r.warning); render(); }).catch(function (e) { busy(x, false); toast(e.message, true); }); };
       var ov = $('#override'); if (ov) ov.onclick = function () { confirmApprove(a, ($('#dnote') && $('#dnote').value.trim()) || '', true); };
       $$('[data-status]').forEach(function (b) {
         b.onclick = function () {
@@ -1568,6 +1645,182 @@ window.__WEB__ = true;
       });
   }
 
+  // ------------------------------------------------------------------
+  // SIGNED CERTIFICATE: scan → "Verify this certificate" QR stamped in the browser → upload
+  // ------------------------------------------------------------------
+  // The two helper libraries load only when a Super Admin opens this tool, never for visitors.
+  var LIBS = {
+    pdf: { g: 'PDFLib', sri: 'sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI',
+      urls: ['https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js', 'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'] },
+    qr: { g: 'qrcode', sri: 'sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k',
+      urls: ['https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js', 'https://unpkg.com/qrcode-generator@1.4.4/qrcode.js'] },
+  };
+  var libP = {};
+  function loadLib(k) {
+    var L = LIBS[k];
+    if (window[L.g]) return Promise.resolve(window[L.g]);
+    if (libP[k]) return libP[k];
+    libP[k] = L.urls.reduce(function (p, url) {
+      return p.catch(function () {
+        return new Promise(function (res, rej) {
+          var s = document.createElement('script');
+          s.src = url; s.integrity = L.sri; s.crossOrigin = 'anonymous'; s.async = true;
+          s.onload = function () { window[L.g] ? res(window[L.g]) : rej(new Error('not loaded')); };
+          s.onerror = function () { s.remove(); rej(new Error('blocked')); };
+          document.head.appendChild(s);
+        });
+      });
+    }, Promise.reject(new Error('start'))).catch(function () { libP[k] = null; throw new Error('The QR tool could not be loaded. Check the internet connection and try again.'); });
+    return libP[k];
+  }
+  function b64FromBytes(u8) {
+    var s = '', CH = 0x8000;
+    for (var i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+    return btoa(s);
+  }
+  var QR_SIZES = { small: 62, medium: 78, large: 98 };
+  var QR_SPOTS = [['top-left', 'Top left'], ['top-right', 'Top right'], ['bottom-left', 'Bottom left'], ['bottom-center', 'Bottom centre'], ['bottom-right', 'Bottom right']];
+
+  /** Adds the verification QR (to the public record) on a scanned PDF, or turns a JPG/PNG scan into a PDF and adds it. */
+  function stampCertificate(bytes, kind, url, code, opt) {
+    var L = window.PDFLib, deg = L.degrees, rgb = L.rgb, doc;
+    var load = kind === 'pdf' ? L.PDFDocument.load(bytes, { ignoreEncryption: true }) : L.PDFDocument.create();
+    return load.then(function (d) {
+      doc = d;
+      if (kind === 'pdf') return null;
+      return (kind === 'png' ? doc.embedPng(bytes) : doc.embedJpg(bytes)).then(function (img) {
+        var W = img.width > img.height ? 841.89 : 595.28, H = W * img.height / img.width; // A4 width, scan's own proportions
+        doc.addPage([W, H]).drawImage(img, { x: 0, y: 0, width: W, height: H });
+      });
+    }).then(function () { return doc.embedFont(L.StandardFonts.HelveticaBold); }).then(function (bold) {
+      return doc.embedFont(L.StandardFonts.Helvetica).then(function (reg) { return [bold, reg]; });
+    }).then(function (fonts) {
+      var pages = doc.getPages();
+      if (!pages.length) throw new Error('The PDF has no pages.');
+      var page = opt.page === 'last' ? pages[pages.length - 1] : pages[0];
+      var box = page.getCropBox ? page.getCropBox() : page.getMediaBox();
+      var rot = ((page.getRotation().angle % 360) + 360) % 360;
+      var side = rot === 90 || rot === 270;
+      var dw = side ? box.height : box.width, dh = side ? box.width : box.height; // the page as people see it
+      function P(x, y) { // a point on the page as seen → PDF coordinates (handles rotated scans)
+        if (rot === 90) return { x: box.x + box.width - y, y: box.y + x };
+        if (rot === 180) return { x: box.x + box.width - x, y: box.y + box.height - y };
+        if (rot === 270) return { x: box.x + y, y: box.y + box.height - x };
+        return { x: box.x + x, y: box.y + y };
+      }
+      var k = Math.max(0.6, Math.min(3, Math.min(dw, dh) / 595.28)); // keep the same look on any scan size
+      var S = (QR_SIZES[opt.size] || QR_SIZES.medium) * k, pad = 5 * k, top = 11 * k, bot = 10 * k, m = 20 * k;
+      var bw = S + 2 * pad, bh = S + 2 * pad + top + bot;
+      var pos = opt.position || 'bottom-right';
+      var bx = /left/.test(pos) ? m : /center/.test(pos) ? (dw - bw) / 2 : dw - m - bw;
+      var by = /top/.test(pos) ? dh - m - bh : m;
+      var R = deg(rot), navy = rgb(0.043, 0.145, 0.271);
+      var rect = function (x, y, w, h, o) { var p = P(x, y); page.drawRectangle(Object.assign({ x: p.x, y: p.y, width: w, height: h, rotate: R }, o)); };
+      var text = function (t, x, y, size, font) { var p = P(x, y); page.drawText(t, { x: p.x, y: p.y, size: size, font: font, color: navy, rotate: R }); };
+      rect(bx, by, bw, bh, { color: rgb(1, 1, 1), borderColor: navy, borderWidth: 0.7 * k });
+      var label = 'Verify this certificate', ls = 6.8 * k;
+      while (fonts[0].widthOfTextAtSize(label, ls) > bw - 2 * pad && ls > 3) ls -= 0.2;
+      text(label, bx + (bw - fonts[0].widthOfTextAtSize(label, ls)) / 2, by + bh - pad - ls * 0.85, ls, fonts[0]);
+      var q = window.qrcode(0, 'M'); q.addData(url); q.make();
+      var n = q.getModuleCount(), cell = S / n, ox = bx + pad, oy = by + pad + bot;
+      for (var r = 0; r < n; r++) {
+        for (var c = 0; c < n; c++) {
+          if (!q.isDark(r, c)) continue;
+          var run = 1; while (c + run < n && q.isDark(r, c + run)) run++;
+          rect(ox + c * cell, oy + (n - 1 - r) * cell, run * cell + 0.02, cell + 0.02, { color: navy, borderWidth: 0 });
+          c += run - 1;
+        }
+      }
+      var cs = 5.6 * k;
+      while (fonts[1].widthOfTextAtSize(code, cs) > bw - 2 * pad && cs > 3) cs -= 0.2;
+      text(code, bx + (bw - fonts[1].widthOfTextAtSize(code, cs)) / 2, by + pad * 0.9, cs, fonts[1]);
+      try { doc.setSubject('Certificate of Utilization ' + code + ' — verify at ' + url); doc.setKeywords([code, 'Certificate of Utilization']); } catch (e) { /* optional */ }
+      return doc.save({ useObjectStreams: true }).then(function (out) { return { bytes: out, pages: pages.length }; });
+    });
+  }
+
+  /** opts: { code, permalink, title, onDone(result) } */
+  function openSignedUpload(o) {
+    var st = { file: null, kind: '', bytes: null, out: null, pages: 1, position: 'bottom-right', size: 'medium', page: 'first', asIs: false, url: '', busy: false };
+    var spots = QR_SPOTS.map(function (p) { return '<button type="button" class="spot spot-' + p[0] + (p[0] === st.position ? ' on' : '') + '" data-pos="' + p[0] + '" aria-label="' + p[1] + '" title="' + p[1] + '"></button>'; }).join('');
+    modal({ title: 'Signed certificate · ' + o.code, wide: true, body:
+      '<p class="muted" style="margin-top:0">Upload the scanned certificate with signatures. The registry adds a <b>“Verify this certificate”</b> QR code that opens the public record, then makes this the certificate shown to the public and sent to the applicant.</p>' +
+      '<div class="sg-grid"><div>' +
+      '<label class="dropzone" id="sg-dz"><input type="file" id="sg-file" class="sr-only" accept="application/pdf,.pdf,image/jpeg,.jpg,.jpeg,image/png,.png"><b id="sg-name">Choose the scanned certificate</b><span class="hint">PDF, JPG or PNG · up to 25 MB</span></label>' +
+      '<div class="sg-opts"><div><p class="section-label" style="margin:14px 0 6px">QR position</p><div class="mini-page" role="group" aria-label="QR position">' + spots + '</div></div>' +
+      '<div><p class="section-label" style="margin:14px 0 6px">QR size</p><div class="seg-toggle" role="radiogroup" aria-label="QR size">' +
+      ['small', 'medium', 'large'].map(function (z) { return '<label><input type="radio" name="sg-size" value="' + z + '"' + (z === st.size ? ' checked' : '') + '> ' + z.charAt(0).toUpperCase() + z.slice(1) + '</label>'; }).join('') + '</div>' +
+      '<div id="sg-pagepick" hidden><p class="section-label" style="margin:10px 0 6px">Page</p><div class="seg-toggle"><label><input type="radio" name="sg-page" value="first" checked> First</label><label><input type="radio" name="sg-page" value="last"> Last</label></div></div></div></div>' +
+      '<label class="check" style="margin-top:14px"><input type="checkbox" id="sg-asis"><span>The scan already has the verification QR — upload it as it is</span></label>' +
+      '<label class="check" style="margin-top:8px"><input type="checkbox" id="sg-mail" checked><span>Email the signed certificate to the applicant</span></label>' +
+      '<p class="hint" style="margin-top:10px">QR opens: <span class="mono" style="word-break:break-all">' + esc(o.permalink) + '</span></p>' +
+      '</div><div class="sg-prev"><div id="sg-msg"></div><div id="sg-view" class="sg-view"><div class="sg-empty">The preview appears here</div></div><a href="#" id="sg-open" class="small" hidden target="_blank" rel="noopener">Open the preview in a new tab</a></div></div>',
+      footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-gold" id="sg-go" disabled>Upload signed certificate</button>',
+      onOpen: function (bg, close) {
+        var msg = function (h) { $('#sg-msg', bg).innerHTML = h || ''; };
+        var setUrl = function (u8) {
+          if (st.url) { try { URL.revokeObjectURL(st.url); } catch (e) { /* ignore */ } }
+          st.url = URL.createObjectURL(new Blob([u8], { type: 'application/pdf' }));
+          var canShow = navigator.pdfViewerEnabled !== false; // phones without a built-in PDF viewer get a button instead
+          $('#sg-view', bg).innerHTML = canShow ? '<iframe title="Preview of the signed certificate" src="' + st.url + '#toolbar=0&navpanes=0&view=Fit"></iframe>'
+            : '<div class="sg-empty"><b style="color:var(--ok)">✓ ' + (st.asIs ? 'Ready to upload' : 'QR code added') + '</b><span>This device cannot show PDFs here.</span><a class="btn btn-ghost btn-sm" href="' + st.url + '" target="_blank" rel="noopener">Open the preview</a></div>';
+          var a = $('#sg-open', bg); a.href = st.url; a.hidden = !canShow;
+        };
+        var ready = function (ok) { $('#sg-go', bg).disabled = !ok; };
+        function restamp() {
+          if (!st.bytes) return;
+          ready(false); msg('');
+          if (st.asIs) {
+            if (st.kind !== 'pdf') { msg(errBox('Only a PDF can be uploaded as it is. Untick the box to add the QR to this image.')); return; }
+            st.out = st.bytes; setUrl(st.bytes); ready(true); return;
+          }
+          $('#sg-view', bg).innerHTML = '<div class="sg-empty"><div class="spinner"></div>Adding the QR code…</div>';
+          Promise.all([loadLib('pdf'), loadLib('qr')]).then(function () {
+            return stampCertificate(st.bytes, st.kind, o.permalink, o.code, { position: st.position, size: st.size, page: st.page });
+          }).then(function (r) {
+            st.out = r.bytes; st.pages = r.pages;
+            $('#sg-pagepick', bg).hidden = !(st.kind === 'pdf' && r.pages > 1);
+            if (st.out.length > 25 * 1048576) { msg(errBox('With the QR added the file is over 25 MB. Scan at 200–300 dpi and try again.')); return; }
+            setUrl(st.out); ready(true);
+          }).catch(function (e) {
+            $('#sg-view', bg).innerHTML = '<div class="sg-empty">No preview</div>';
+            var m = String(e && e.message || e);
+            msg(errBox(/QR tool/.test(m) ? m + (st.kind === 'pdf' ? ' If the scan already shows the QR, tick “upload it as it is”.' : '')
+              : 'This file could not be read (' + m.slice(0, 120) + '). Save or scan it again as a normal PDF or JPG and try again.'));
+          });
+        }
+        $('#sg-file', bg).onchange = function () {
+          var f = this.files[0]; if (!f) return;
+          var kind = /\.pdf$/i.test(f.name) || f.type === 'application/pdf' ? 'pdf' : /\.png$/i.test(f.name) || f.type === 'image/png' ? 'png' : /\.jpe?g$/i.test(f.name) || f.type === 'image/jpeg' ? 'jpg' : '';
+          if (!kind) { msg(errBox('Choose a PDF, JPG or PNG scan.')); return; }
+          if (f.size > 25 * 1048576) { msg(errBox('That file is ' + (f.size / 1048576).toFixed(1) + ' MB. The limit is 25 MB — scan at 200–300 dpi.')); return; }
+          st.file = f; st.kind = kind; $('#sg-name', bg).textContent = f.name + ' · ' + (f.size < 1048576 ? Math.max(1, Math.round(f.size / 1024)) + ' KB' : (f.size / 1048576).toFixed(1) + ' MB');
+          var rd = new FileReader();
+          rd.onload = function () { st.bytes = new Uint8Array(rd.result); restamp(); };
+          rd.onerror = function () { msg(errBox('Could not read that file from this device.')); };
+          rd.readAsArrayBuffer(f);
+          if (!st.asIs) { loadLib('pdf').catch(function () {}); loadLib('qr').catch(function () {}); }
+        };
+        $$('[data-pos]', bg).forEach(function (b) { b.onclick = function () { st.position = b.dataset.pos; $$('[data-pos]', bg).forEach(function (x) { x.classList.toggle('on', x === b); }); restamp(); }; });
+        $$('input[name="sg-size"]', bg).forEach(function (r) { r.onchange = function () { st.size = r.value; restamp(); }; });
+        $$('input[name="sg-page"]', bg).forEach(function (r) { r.onchange = function () { st.page = r.value; restamp(); }; });
+        $('#sg-asis', bg).onchange = function () { st.asIs = this.checked; $('.sg-opts', bg).classList.toggle('dim', st.asIs); restamp(); };
+        // the libraries start loading while the admin finds the scan
+        loadLib('pdf').catch(function () {}); loadLib('qr').catch(function () {});
+        $('#sg-go', bg).onclick = function () {
+          if (!st.out || st.busy) return;
+          var b = this; st.busy = true; busy(b, true, 'Uploading…');
+          api('uploadSignedCertificate', S.token, o.code, { name: st.file.name, data: b64FromBytes(st.out) }, { stamped: !st.asIs, emailApplicant: $('#sg-mail', bg).checked })
+            .then(function (r) {
+              if (st.url) { try { URL.revokeObjectURL(st.url); } catch (e) { /* ignore */ } }
+              close();
+              toast(r.warning ? 'Signed certificate saved. ' + r.warning : 'Signed certificate saved' + (r.emailed ? ' and emailed to ' + r.emailed : ''), !!r.warning);
+              if (o.onDone) o.onDone(r);
+            }).catch(function (e) { st.busy = false; busy(b, false); msg(errBox(e)); });
+        };
+      } });
+  }
+
   function templateSelect(templates, selectedId, id) {
     return '<select class="input" id="' + id + '">' + templates.map(function (t) {
       return '<option value="' + esc(t.TemplateID) + '"' + ((selectedId ? t.TemplateID === selectedId : t.IsActive) ? ' selected' : '') + '>' + esc(t.Name) + (t.IsActive ? ' (default)' : '') + '</option>';
@@ -1579,27 +1832,42 @@ window.__WEB__ = true;
     var preview = S.cfg.codePrefix + '-' + ('0' + (y.getMonth() + 1)).slice(-2) + '-' + y.getFullYear() + '-####';
     modal({ title: 'Approve & issue certificate', body:
       '<p>Approving <b>' + esc(a.ResourceTitle) + '</b> will:</p><ul><li>generate a permanent CU code in the format <span class="mono">' + esc(preview) + '</span>,</li>' +
-      '<li>create the PDF Certificate of Utilization,</li><li>publish the record in the public catalog' + (a.ApplicantEmail ? ', and</li><li>email the certificate to ' + esc(a.ApplicantEmail) + '.</li></ul>' : '.</li></ul>') +
-      '<div class="field"><label for="tpl">Certificate template</label>' + templateSelect(a.templates || [], '', 'tpl') + '<div class="hint">Manage templates and logos in Settings.</div></div>' +
+      '<li>publish the record in the public catalog' + (a.ApplicantEmail ? ', and</li><li>email ' + esc(a.ApplicantEmail) + ' the CU number and the record link.</li></ul>' : '.</li></ul>') +
+      '<p class="small" style="margin-top:-4px">Next, upload the <b>scanned signed certificate</b> — the registry adds its “Verify this certificate” QR code automatically.</p>' +
+      (a.generateMode === 'never' ? '' : (a.generateMode === 'always' ? '<p class="small muted">A system-generated certificate is also created (Settings → Workflow).</p>'
+        : '<label class="check" style="margin:6px 0 12px"><input type="checkbox" id="gen"' + (a.generateDefault ? ' checked' : '') + '><span>Also create a system-generated certificate <span class="muted">(optional)</span></span></label>') +
+        '<div class="field" id="tpl-field"' + (a.generateMode === 'optional' && !a.generateDefault ? ' hidden' : '') + '><label for="tpl">Certificate template</label>' + templateSelect(a.templates || [], '', 'tpl') + '<div class="hint">Manage templates and logos in Settings.</div></div>') +
       '<div class="field"><label for="rlink">Public resource link (optional)</label><input class="input" id="rlink" placeholder="https://… (e.g. LR portal or public Drive link)"><div class="hint">Shown on the public catalog record.</div></div>' +
       (override ? '<div class="callout warn" style="margin-bottom:14px"><b>Override.</b> This application is at <b>' + esc(a.Status) + '</b>. Approving now skips the remaining review steps.</div>' +
         '<div class="field"><label for="oreason">Reason for the override <span class="req">*</span></label><textarea class="input" id="oreason" style="min-height:80px" placeholder="e.g. Cleared by the Division QA Team, QA Memo No. 12, s. 2026">' + esc(note) + '</textarea><div class="hint">Recorded in the audit log and the evaluation notes.</div></div>' : '') +
       '<p class="small muted">CU codes are never reused, even if a certificate is later revoked.</p>',
-      footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-gold" id="do-approve">' + (override ? 'Override & issue CU number' : 'Approve & issue') + '</button>',
+      footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-gold" id="do-approve">' + (override ? 'Override & issue CU number' : 'Approve & issue CU number') + '</button>',
       onOpen: function (bg, close) {
+        var gen = $('#gen', bg); if (gen) gen.onchange = function () { $('#tpl-field', bg).hidden = !gen.checked; };
         $('#do-approve', bg).onclick = function () {
-          var b = this; busy(b, true, 'Issuing certificate…');
+          var b = this, wantPdf = a.generateMode === 'always' || (a.generateMode !== 'never' && !!($('#gen', bg) && $('#gen', bg).checked));
+          busy(b, true, wantPdf ? 'Issuing CU number & certificate…' : 'Issuing CU number…');
           var why = override ? $('#oreason', bg).value.trim() : note;
           if (override && why.length < 10) { busy(b, false); toast('Write the reason for the override.', true); $('#oreason', bg).focus(); return; }
-          api('changeStatus', S.token, a.ApplicationID, 'Approved', why, { resourceLink: $('#rlink', bg).value, templateId: $('#tpl', bg) ? $('#tpl', bg).value : '', override: !!override }).then(function (r) {
+          api('changeStatus', S.token, a.ApplicationID, 'Approved', why, { resourceLink: $('#rlink', bg).value, templateId: $('#tpl', bg) ? $('#tpl', bg).value : '', override: !!override, generate: wantPdf }).then(function (r) {
             close();
-            modal({ title: 'Certificate issued', body: '<div style="text-align:center"><p class="section-label">Certificate of Utilization Code</p>' +
-              '<div class="mono issued-code">' + esc(r.CU_Code) + '</div>' +
-              '<p>The certificate is being emailed to the applicant and the record is now live in the public catalog.</p>' + (r.warning ? '<div class="err" style="text-align:left">' + esc(r.warning) + '</div>' : '') + '</div>',
-              footer: (r.CertificatePDF_URL ? '<button class="btn btn-ghost" data-open="' + esc(r.CertificatePDF_URL) + '">View PDF</button>' : '') + '<button class="btn btn-primary" data-close>Done</button>' });
             if (r.view && $('#main')) drawApp($('#main'), r.view); else render();
+            issuedModal(r, a.ApplicantEmail);
           }).catch(function (e) { busy(b, false); toast(e.message, true); });
         };
+      } });
+  }
+
+  /** After a CU number is issued: show it, and go straight to uploading the signed scan. */
+  function issuedModal(r, email) {
+    modal({ title: 'CU number issued', body: '<div style="text-align:center"><p class="section-label">Certificate of Utilization Code</p>' + codeParts(r.CU_Code, true) +
+      '<p style="margin-top:16px">The record is live in the public registry' + (email ? ' and ' + esc(email) + ' is being notified' : '') + '.' +
+      (r.generated ? ' A system-generated certificate was also created.' : '') + '</p>' +
+      '<p class="small muted">Next: scan the signed certificate and upload it — the verification QR is added for you.</p>' + (r.warning ? errBox(r.warning) : '') + '</div>',
+      footer: (r.CertificatePDF_URL ? '<button class="btn btn-ghost" data-open="' + esc(r.CertificatePDF_URL) + '">System PDF</button>' : '') +
+        '<button class="btn btn-ghost" data-close>Later</button><button class="btn btn-gold" id="go-signed">Upload signed certificate</button>',
+      onOpen: function (bg, close) {
+        $('#go-signed', bg).onclick = function () { close(); openSignedUpload({ code: r.CU_Code, permalink: r.Permalink || permalink(r.CU_Code), onDone: function () { render(); } }); };
       } });
   }
 
@@ -1695,29 +1963,45 @@ window.__WEB__ = true;
   function vCertificates(main, alive) {
     main.innerHTML = '<div class="wrap"><div class="page-head"><div><h1>Certificates</h1><p>Every CU code ever issued. Codes are permanent; revoked certificates stay on record.</p></div>' +
       '<label class="sr-only" for="qs">Filter</label><input class="input" id="qs" placeholder="Filter by code, title, developer…" style="max-width:300px"></div><div id="body">' + skeleton('table') + '</div></div>';
-    return api('certificatesPage', S.token, '', 0).then(function (res) {
+    var filter = S.params.filter === 'unsigned' ? 'unsigned' : '';
+    return api('certificatesPage', S.token, '', 0, filter).then(function (res) {
       if (!alive()) return;
       var rows = res.rows, templates = res.templates || [], page = res, q = '', searchId = 0, timer = null;
+      var mode = res.generateMode || 'optional';
+      function reload() {
+        var my = ++searchId;
+        $('#body').innerHTML = skeleton('table');
+        api('certificatesPage', S.token, q, 0, filter).then(function (n) { if (alive() && my === searchId) { rows = n.rows; page = n; draw(); } }).catch(function (e) { toast(e.message, true); });
+      }
       function draw() {
         var list = rows;
-        $('#body').innerHTML = '<p class="small muted" style="margin:0 0 12px">' + (q ? page.total + ' match' + (page.total === 1 ? '' : 'es') + ' for “' + esc(q) + '”' : 'Newest first · showing ' + rows.length + ' of ' + page.issued + ' certificates') + '</p>' +
-          (list.length ? '<div class="card table-wrap"><table class="tbl stack"><thead><tr><th>CU Code</th><th>Resource</th><th>Issued</th><th>Status</th><th></th></tr></thead><tbody>' +
+        $('#body').innerHTML = '<div class="tabs"><button class="tab ' + (filter ? '' : 'active') + '" data-f="">All<span class="cnt">' + page.issued + '</span></button>' +
+          '<button class="tab ' + (filter ? 'active' : '') + '" data-f="unsigned">Awaiting signed copy<span class="cnt">' + page.awaitingSigned + '</span></button></div>' +
+          '<p class="small muted" style="margin:0 0 12px">' + (q ? page.total + ' match' + (page.total === 1 ? '' : 'es') + ' for “' + esc(q) + '”' : 'Newest first · showing ' + rows.length + ' of ' + page.total) + '</p>' +
+          (list.length ? '<div class="card table-wrap"><table class="tbl stack"><thead><tr><th>CU Code</th><th>Resource</th><th>Issued</th><th>Signed copy</th><th></th></tr></thead><tbody>' +
           list.map(function (r) {
             return '<tr><td data-l="CU Code" class="mono small" style="font-weight:600;color:var(--navy)">' + esc(r.CU_Code) + '</td>' +
               '<td class="t-title"><a href="#" data-go="app" data-id="' + esc(r.ApplicationID) + '" style="text-decoration:none">' + esc(r.ResourceTitle) + '</a><div class="muted small" style="font-weight:400">' + esc(r.Developers) + '</div>' +
               (r.TemplateName ? '<div class="muted small" style="font-weight:400">Template: ' + esc(r.TemplateName) + '</div>' : '') +
               (r.Status === 'Revoked' ? '<div class="small" style="color:var(--bad);font-weight:400">Revoked ' + d(r.RevokedDate) + ': ' + esc(r.RevokedReason) + '</div>' : '') + '</td>' +
-              '<td data-l="Issued">' + d(r.DateIssued) + '<div class="muted small">' + esc(r.IssuedBy) + '</div></td><td data-l="Status">' + badge(r.Status) + '</td>' +
+              '<td data-l="Issued">' + d(r.DateIssued) + '<div class="muted small">' + esc(r.IssuedBy) + '</div></td>' +
+              '<td data-l="Signed copy">' + (r.Status === 'Revoked' ? badge('Revoked') : r.SignedPDF_URL ? '<span class="signed-line ok">✓ ' + d(r.SignedUploadedAt) + '</span>' : '<span class="signed-line todo">Not uploaded</span>') + '</td>' +
               '<td><div class="btn-row" style="justify-content:flex-end">' +
-              (r.CertificatePDF_URL && r.Status !== 'Revoked' ? '<button class="btn btn-ghost btn-sm" data-open="' + esc(r.CertificatePDF_URL) + '">PDF</button>' : '') +
+              (isAdmin() && r.Status !== 'Revoked' ? '<button class="btn ' + (r.SignedPDF_URL ? 'btn-ghost' : 'btn-gold') + ' btn-sm" data-signed="' + esc(r.CU_Code) + '" data-perm="' + esc(r.Permalink || '') + '">' + (r.SignedPDF_URL ? 'Replace signed' : 'Upload signed') + '</button>' : '') +
+              (r.SignedPDF_URL && r.Status !== 'Revoked' ? '<button class="btn btn-ghost btn-sm" data-open="' + esc(r.SignedPDF_URL) + '">Signed PDF</button>' : '') +
+              (r.CertificatePDF_URL && r.Status !== 'Revoked' ? '<button class="btn btn-ghost btn-sm" data-open="' + esc(r.CertificatePDF_URL) + '">System PDF</button>' : '') +
               '<button class="btn btn-ghost btn-sm" data-go="cu" data-code="' + esc(r.CU_Code) + '">Record</button>' +
-              (isAdmin() && r.Status !== 'Revoked' ? '<button class="btn btn-ghost btn-sm" data-link="' + esc(r.CU_Code) + '">Link</button><button class="btn btn-ghost btn-sm" data-regen="' + esc(r.CU_Code) + '" data-tpl="' + esc(r.TemplateID) + '">Regenerate</button><button class="btn btn-danger btn-sm" data-revoke="' + esc(r.CU_Code) + '">Revoke</button>' : '') +
+              (isAdmin() && r.Status !== 'Revoked' ? '<button class="btn btn-ghost btn-sm" data-link="' + esc(r.CU_Code) + '">Link</button>' +
+                (mode !== 'never' ? '<button class="btn btn-ghost btn-sm" data-regen="' + esc(r.CU_Code) + '" data-tpl="' + esc(r.TemplateID) + '" data-new="' + (r.CertificatePDF_URL ? '' : '1') + '">' + (r.CertificatePDF_URL ? 'Regenerate' : 'Create system PDF') + '</button>' : '') +
+                '<button class="btn btn-danger btn-sm" data-revoke="' + esc(r.CU_Code) + '">Revoke</button>' : '') +
               '</div></td></tr>';
           }).join('') + '</tbody></table></div>' + (page.more ? '<div class="more-row"><button class="btn btn-ghost" id="more">Show ' + Math.min(20, page.total - rows.length) + ' more</button></div>' : '')
-          : '<div class="card empty"><h3>' + (q ? 'No matching certificates' : 'No certificates yet') + '</h3><p>' + (q ? 'Check the code or title and try again.' : 'Certificates appear here once applications are approved.') + '</p></div>');
+          : '<div class="card empty"><h3>' + (q ? 'No matching certificates' : filter ? 'Every certificate has its signed copy' : 'No certificates yet') + '</h3><p>' + (q ? 'Check the code or title and try again.' : filter ? 'Nothing is waiting for a scan.' : 'Certificates appear here once applications are approved.') + '</p></div>');
+        $$('[data-f]').forEach(function (b) { b.onclick = function () { filter = b.dataset.f; S.params.filter = filter; setUrl(S.route, S.params, true); reload(); }; });
+        $$('[data-signed]').forEach(function (b) { b.onclick = function () { openSignedUpload({ code: b.dataset.signed, permalink: b.dataset.perm || permalink(b.dataset.signed), onDone: reload }); }; });
         var mb = $('#more'); if (mb) mb.onclick = function () {
           busy(mb, true, 'Loading…');
-          api('certificatesPage', S.token, q, rows.length).then(function (n) { if (!alive()) return; rows = rows.concat(n.rows); page = n; draw(); }).catch(function (e) { busy(mb, false); toast(e.message, true); });
+          api('certificatesPage', S.token, q, rows.length, filter).then(function (n) { if (!alive()) return; rows = rows.concat(n.rows); page = n; draw(); }).catch(function (e) { busy(mb, false); toast(e.message, true); });
         };
         $$('[data-revoke]').forEach(function (b) {
           b.onclick = function () {
@@ -1731,7 +2015,8 @@ window.__WEB__ = true;
         $$('[data-regen]').forEach(function (b) {
           b.onclick = function () {
             var code = b.dataset.regen;
-            modal({ title: 'Regenerate ' + code, body: '<p>Creates a new PDF with the current settings, logos and the template you choose. The CU code and issue date stay the same.</p>' +
+            var fresh = b.dataset.new === '1';
+            modal({ title: (fresh ? 'Create system certificate · ' : 'Regenerate ') + code, body: '<p>' + (fresh ? 'Creates a system-generated PDF certificate from the template you choose. The scanned signed copy, if uploaded, stays the main certificate.' : 'Creates a new PDF with the current settings, logos and the template you choose. The CU code and issue date stay the same.') + '</p>' +
               '<div class="field"><label for="rtpl">Template</label>' + templateSelect(templates, b.dataset.tpl, 'rtpl') + '</div>',
               footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="do">Regenerate PDF</button>',
               onOpen: function (bg, close) { $('#do', bg).onclick = function () { var x = this; busy(x, true, 'Generating…'); api('regenerateCertificate', S.token, code, $('#rtpl', bg).value).then(function (r) { close(); toast(r.warning || 'Certificate PDF regenerated', !!r.warning); render(); }).catch(function (e) { busy(x, false); toast(e.message, true); }); }; } });
@@ -1751,7 +2036,7 @@ window.__WEB__ = true;
         var my = ++searchId;
         timer = setTimeout(function () {
           q = $('#qs').value.trim();
-          api('certificatesPage', S.token, q, 0).then(function (n) { if (alive() && my === searchId) { rows = n.rows; page = n; draw(); } }).catch(function (e) { toast(e.message, true); });
+          api('certificatesPage', S.token, q, 0, filter).then(function (n) { if (alive() && my === searchId) { rows = n.rows; page = n; draw(); } }).catch(function (e) { toast(e.message, true); });
         }, 350);
       };
       draw();
@@ -1817,7 +2102,7 @@ window.__WEB__ = true;
   // ------------------------------------------------------------------
   // ADMIN: settings (branding, certificate logos, templates, details)
   // ------------------------------------------------------------------
-  var SETTINGS_TABS = [['branding', 'App logo'], ['logos', 'Certificate logos'], ['templates', 'Certificate templates'], ['details', 'Details & signatories'], ['workflow', 'Workflow'], ['signin', 'Sign-in code'], ['storage', 'Drive storage'], ['register', 'Direct registration']];
+  var SETTINGS_TABS = [['branding', 'App logo'], ['logos', 'Certificate logos'], ['templates', 'Certificate templates'], ['details', 'Details & signatories'], ['workflow', 'Workflow'], ['signin', 'Sign-in code'], ['storage', 'Drive storage'], ['register', 'Direct registration'], ['security', 'Security']];
 
   function vSettings(main, alive) {
     var tab = S.params.tab || 'branding';
@@ -1830,6 +2115,7 @@ window.__WEB__ = true;
       var body = $('#sbody');
       var fieldMap = {}; st.fields.forEach(function (f) { fieldMap[f.key] = f; });
       var refresh = function () { api('getPublicConfig').then(function (c) { S.cfg = c; render(); }); };
+      if (st.blocked && tab !== 'security') body.insertAdjacentHTML('beforebegin', '<div class="callout warn" style="margin-bottom:14px"><b>' + st.blocked + ' change' + (st.blocked === 1 ? ' was' : 's were') + ' made directly in the Google Sheet and ' + (st.blocked === 1 ? 'is' : 'are') + ' blocked.</b> <a href="#" data-go="settings" data-tab="security">Review in Security</a></div>');
       var urlHelp = '<details class="help"><summary>How to get a logo link from Google Drive</summary><ol><li>Upload the PNG or JPG to Google Drive.</li><li>Right-click it → <b>Share</b> → General access: <b>Anyone with the link</b> (Viewer).</li><li>Click <b>Copy link</b> and paste it here.</li></ol><p>Any public image address (https://…/logo.png) also works. PNG with a transparent background looks best.</p></details>';
 
       if (tab === 'branding') {
@@ -1842,7 +2128,7 @@ window.__WEB__ = true;
           '<div class="field" style="margin-top:18px;max-width:420px"><label for="sname">Short name beside the logo</label><input class="input" id="sname" value="' + esc(fieldMap.APP_SHORT_NAME.value) + '"></div>' +
           '<button class="btn btn-ghost" id="save-name">Save name</button></div>';
         var inp = $('#applogo');
-        inp.oninput = function () { var u = displayImage(inp.value); $('#lp').innerHTML = u ? '<img src="' + esc(u) + '" alt="App logo preview" onerror="this.parentNode.innerHTML=\'<span>?</span>\'">' : '<span>CU</span>'; };
+        inp.oninput = function () { var u = displayImage(inp.value); $('#lp').innerHTML = u ? '<img src="' + esc(u) + '" alt="App logo preview" data-fallback="q">' : '<span>CU</span>'; };
         $('#save').onclick = function () { var b = this; busy(b, true); api('saveSettings', S.token, { APP_LOGO_URL: inp.value.trim() }).then(function () { toast('App logo saved'); refresh(); }).catch(function (e) { busy(b, false); $('#msg').innerHTML = errBox(e); }); };
         var cl = $('#clear'); if (cl) cl.onclick = function () { api('saveSettings', S.token, { APP_LOGO_URL: '' }).then(function () { toast('App logo removed'); refresh(); }); };
         $('#save-name').onclick = function () { api('saveSettings', S.token, { APP_SHORT_NAME: $('#sname').value }).then(function () { toast('Saved'); refresh(); }).catch(function (e) { toast(e.message, true); }); };
@@ -1864,7 +2150,7 @@ window.__WEB__ = true;
             '<div class="field"><label for="nurl">Logo link</label><input class="input" id="nurl" type="url" placeholder="https://drive.google.com/file/d/…"></div></div>' +
             '<button class="btn btn-primary" id="add">Add logo</button></div></div>' + urlHelp + '</div>' : '<p class="small muted">Maximum of 8 logos reached.</p>') + '</div>';
         var nurl = $('#nurl');
-        if (nurl) nurl.oninput = function () { var u = displayImage(nurl.value); $('#nlp').innerHTML = u ? '<img src="' + esc(u) + '" alt="" onerror="this.parentNode.innerHTML=\'<span>?</span>\'">' : '<span>+</span>'; };
+        if (nurl) nurl.oninput = function () { var u = displayImage(nurl.value); $('#nlp').innerHTML = u ? '<img src="' + esc(u) + '" alt="" data-fallback="q">' : '<span>+</span>'; };
         var add = $('#add'); if (add) add.onclick = function () { busy(add, true); api('saveLogo', S.token, { Label: $('#nlabel').value, URL: nurl.value }).then(function () { toast('Logo added'); render(); }).catch(function (e) { busy(add, false); $('#msg').innerHTML = errBox(e); }); };
         $$('[data-mv]').forEach(function (b) { b.onclick = function () { api('moveLogo', S.token, b.dataset.lid, b.dataset.mv).then(render); }; });
         $$('[data-del]').forEach(function (b) { b.onclick = function () { askConfirm('Remove logo?', 'It will no longer appear on new or regenerated certificates. Certificates already issued are not changed.', 'Remove', true).then(function (y) { if (y) api('deleteLogo', S.token, b.dataset.del).then(function () { toast('Logo removed'); render(); }); }); }; });
@@ -1910,6 +2196,43 @@ window.__WEB__ = true;
       }
 
       if (tab === 'register') { drawRegister(body, st); }
+
+      if (tab === 'security') {
+        body.innerHTML = '<div class="card card-pad"><h2>Changes made directly in the Google Sheet</h2>' +
+          '<p class="muted" style="margin-top:-4px;max-width:66ch">Staff accounts, public registry records and settings are signed with a secret key that only the registry holds. If someone edits them in the Google Sheet instead of in this app, the change is blocked: the account cannot sign in, the record is hidden from the public, and the setting is ignored — until you review it here.</p><div id="sec-list">' + loading() + '</div></div>' +
+          '<div class="card card-pad" style="margin-top:16px"><h2>Sign out everyone</h2><p class="muted" style="margin-top:-4px;max-width:66ch">Ends every staff session on every device, including yours. Use it if a phone or laptop with a signed-in session is lost, or a sign-in code may have been seen by someone else (then also give that person a new code on the Users page).</p>' +
+          '<button class="btn btn-danger" id="sec-out">Sign out everyone</button></div>' +
+          '<div class="card card-pad" style="margin-top:16px"><h2>Keep the registry safe</h2><ul class="help-list">' +
+          '<li>Share the Google Sheet and the Apps Script project <b>only</b> with the administrators who need them. Anyone with edit access to the Apps Script project can change the code itself.</li>' +
+          '<li>Turn on 2-Step Verification for the Google account that deployed the registry.</li>' +
+          '<li>Make changes in this app, not in the Sheet. Direct edits are blocked until reviewed here.</li>' +
+          '<li>Never send sign-in codes by group chat; give a new code on the Users page if one leaks.</li></ul></div>';
+        var drawSec = function () {
+          api('getSecurity', S.token).then(function (r) {
+            var el = $('#sec-list'); if (!el) return;
+            if (!r.on) { el.innerHTML = '<p class="small muted">Protection switches on automatically within a minute of deploying this version.</p>'; return; }
+            if (!r.items.length) { el.innerHTML = '<div class="callout ok"><b>Nothing to review.</b> Every staff account, registry record and setting matches what the registry saved.</div>'; return; }
+            el.innerHTML = r.items.map(function (it) {
+              return '<div class="sec-item"><div class="sec-h"><span class="badge b-Rejected">' + esc(it.label) + '</span> <b>' + esc(it.name || it.id) + '</b> <span class="mono small muted">' + esc(it.id) + '</span></div>' +
+                '<div class="kv small">' + Object.keys(it.values).map(function (k) { return '<div class="k">' + esc(k) + '</div><div style="word-break:break-word">' + (esc(it.values[k]) || '<span class="muted">(blank)</span>') + '</div>'; }).join('') + '</div>' +
+                '<p class="small muted" style="margin:6px 0 10px">' + (it.table === 'Users' ? 'This account cannot sign in. If you did not make this change, deactivate it and check who has access to the Sheet.' : it.table === 'Catalog' ? (it.unsigned ? 'This row was added in the Sheet, not by the registry. It is hidden from the public.' : 'This record is hidden from the public registry while the change is unreviewed.') : 'The registry is using the default value instead.') + '</p>' +
+                '<div class="btn-row"><button class="btn btn-ghost btn-sm" data-acc="' + esc(it.table) + '" data-id="' + esc(it.id) + '">I made this change — accept it</button>' +
+                (it.table === 'Users' ? '<button class="btn btn-danger btn-sm" data-deact="' + esc(it.id) + '">Deactivate account</button>' : '') + '</div></div>';
+            }).join('');
+            $$('[data-acc]', el).forEach(function (b) { b.onclick = function () {
+              askConfirm('Accept this change?', 'The values shown become trusted again' + (b.dataset.acc === 'Catalog' ? ' and the record is shown publicly as a verified certificate' : '') + '. Only accept changes you or another administrator made on purpose.', 'Accept change').then(function (y) {
+                if (!y) return; api('acceptSheetEdit', S.token, b.dataset.acc, b.dataset.id).then(function () { toast('Change accepted'); render(); }).catch(function (e) { toast(e.message, true); });
+              }); }; });
+            $$('[data-deact]', el).forEach(function (b) { b.onclick = function () { api('acceptSheetEdit', S.token, 'Users', b.dataset.deact, 'deactivate').then(function () { toast('Account deactivated'); render(); }).catch(function (e) { toast(e.message, true); }); }; });
+          }).catch(function (e) { var el = $('#sec-list'); if (el) el.innerHTML = errBox(e); });
+        };
+        drawSec();
+        $('#sec-out').onclick = function () {
+          askConfirm('Sign out everyone?', 'Every staff member, including you, must sign in again with their code.', 'Sign out everyone', true).then(function (y) {
+            if (!y) return; api('signOutEveryone', S.token).then(function () { S.token = null; S.user = null; tokenStore.set(null); toast('Everyone has been signed out.'); go('login', {}); }).catch(function (e) { toast(e.message, true); });
+          });
+        };
+      }
 
       if (tab === 'storage') {
         var who = st.ownerEmail || 'the Google account that deployed the app';
@@ -1970,6 +2293,8 @@ window.__WEB__ = true;
           return '<div class="card card-pad" style="margin-bottom:16px"><h2>' + (g === 'Certificate' ? 'Certificate text & signatories' : g) + '</h2><form data-group="' + g + '"><div class="grid g2">' +
             fs.map(function (f) {
               if (f.bool) return '<div class="field span2"><label class="check"><input type="checkbox" data-key="' + f.key + '" id="s-' + f.key + '" ' + (/^true$/i.test(f.value) ? 'checked' : '') + '><span><b>' + esc(f.label) + '</b></span></label></div>';
+              if (f.options) return '<div class="field span2"><label for="s-' + f.key + '">' + esc(f.label) + '</label><select class="input" id="s-' + f.key + '" data-key="' + f.key + '" style="max-width:360px">' +
+                f.options.map(function (o) { return '<option' + (o === f.value ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select><div class="hint">' + esc(f.hint) + '</div></div>';
               var lock = f.key === 'CODE_PREFIX' && st.codeLocked;
               return '<div class="field"><label for="s-' + f.key + '">' + esc(f.label) + '</label><input class="input" id="s-' + f.key + '" data-key="' + f.key + '" value="' + esc(f.value) + '" ' + (lock ? 'disabled' : '') + '>' +
                 '<div class="hint">' + esc(lock ? 'Locked — certificates have already been issued with this prefix.' : f.hint) + '</div></div>';
@@ -2049,7 +2374,14 @@ window.__WEB__ = true;
           inp('resourceLink', 'Public link shown on the record', false, 'type="url" placeholder="Optional — leave blank to keep the material private"')) + '</fieldset>' +
       '<fieldset class="reg-sec"><legend>Send the certificate (optional)</legend><div class="grid g2">' + inp('contactName', 'Contact person', false, 'maxlength="120"') +
       inp('contactEmail', 'Email', false, 'type="email" maxlength="160"', 'The certificate PDF is emailed here.') + '</div>' +
-      '<div class="field" style="max-width:420px"><label for="r-tpl">Certificate template</label>' + templateSelect(st.templates, '', 'r-tpl') + '</div></fieldset>' +
+      (function () {
+        var gm = (st.fields.filter(function (f) { return f.key === 'GENERATE_CERTIFICATE'; })[0] || {}).value || 'Optional – off by default';
+        if (gm === 'Never') return '';
+        var on = gm === 'Always' || (R.generate === undefined ? gm === 'Optional – on by default' : !!R.generate);
+        return (gm === 'Always' ? '<p class="small muted">A system-generated certificate is also created (Settings → Workflow).</p>'
+          : '<label class="check" style="margin:4px 0 12px"><input type="checkbox" id="r-gen"' + (on ? ' checked' : '') + '><span>Also create a system-generated certificate <span class="muted">(optional — the main certificate is the signed scan you upload next)</span></span></label>') +
+          '<div class="field" style="max-width:420px"' + (on ? '' : ' hidden') + ' id="r-tplf"><label for="r-tpl">Certificate template</label>' + templateSelect(st.templates, '', 'r-tpl') + '</div>';
+      })() + '</fieldset>' +
       '<div class="btn-row form-nav"><button class="btn btn-ghost" id="r-clear">Clear form</button><button class="btn btn-gold" id="r-go">Register & issue CU number</button></div></div>';
 
     api('nextCuPreview', S.token).then(function (r) { var el = $('#r-next'); if (el) el.innerHTML = codeParts(r.code); }).catch(function () { var el = $('#r-next'); if (el) el.textContent = '—'; });
@@ -2057,9 +2389,11 @@ window.__WEB__ = true;
       $$('[data-r]', body).forEach(function (el) { R[el.dataset.r] = el.value; });
       $$('#r-devs .dev-card', body).forEach(function (row) { var i = +row.dataset.i; $$('input', row).forEach(function (x) { R.developers[i][x.dataset.k] = x.value.trim(); }); });
       var pub = $('#r-publish', body); if (pub) R.publishFile = pub.checked;
-      R.templateId = $('#r-tpl', body).value;
+      R.templateId = $('#r-tpl', body) ? $('#r-tpl', body).value : '';
+      var g = $('#r-gen', body); if (g) R.generate = g.checked;
     }
     $$('input[name="r-mode"]', body).forEach(function (r) { r.onchange = function () { save(); R.mode = r.value; drawRegister(body, st); }; });
+    var rg = $('#r-gen', body); if (rg) rg.onchange = function () { $('#r-tplf', body).hidden = !rg.checked; };
     $('#r-add', body).onclick = function () { save(); R.developers.push({ first: '', mi: '', last: '', position: '' }); drawRegister(body, st); };
     $$('[data-rrm]', body).forEach(function (b) { b.onclick = function () { save(); R.developers.splice(+b.dataset.rrm, 1); drawRegister(body, st); }; });
     $('#r-clear', body).onclick = function () { askConfirm('Clear the form?', 'Everything you entered here will be removed.', 'Clear', true).then(function (y) { if (y) { REG = regBlank(); drawRegister(body, st); } }); };
@@ -2081,7 +2415,7 @@ window.__WEB__ = true;
       if (R.mode === 'upload' && !R.file) miss.push('the file');
       if (R.mode === 'upload' && R.up && R.up.state === 'failed') { $('#r-msg').innerHTML = errBox('The file did not upload (' + R.up.error + '). Choose the file again.'); window.scrollTo(0, 0); return; } if (R.mode === 'link' && !/^https:\/\//i.test(String(R.fileLink || '').trim())) miss.push('an https:// link to the material');
       if (miss.length) { $('#r-msg').innerHTML = errBox('Please provide ' + miss.join(', ') + '.'); window.scrollTo(0, 0); return; }
-      modal({ title: 'Register and issue a CU number?', body: '<p><b>' + esc(R.resourceTitle) + '</b> will receive the next CU number, a certificate, and a public registry record right away.</p>' +
+      modal({ title: 'Register and issue a CU number?', body: '<p><b>' + esc(R.resourceTitle) + '</b> will receive the next CU number and a public registry record right away. You can then upload the scanned signed certificate.</p>' +
         '<p class="small muted">Quality assured by ' + esc(R.qaBy) + (R.qaReference ? ' · ' + esc(R.qaReference) : '') + '. This is recorded in the audit log.</p>',
         footer: '<button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-gold" id="do">Register & issue</button>',
         onOpen: function (bg, close) {
@@ -2096,10 +2430,7 @@ window.__WEB__ = true;
               return api('registerDirect', S.token, payload, null);
             }).then(function (r) {
               close(); REG = regBlank(); drawRegister(body, st);
-              modal({ title: 'Registered', body: '<p class="section-label">CU number issued</p>' + codeParts(r.CU_Code, true) +
-                '<p style="margin-top:16px">The certificate was created' + (payload.contactEmail ? ' and is being emailed to ' + esc(payload.contactEmail) : '') + '. The record is live in the public catalog.</p>' + (r.warning ? errBox(r.warning) : ''),
-                footer: (r.CertificatePDF_URL ? '<button class="btn btn-ghost" data-open="' + esc(r.CertificatePDF_URL) + '">Certificate PDF</button>' : '') +
-                  '<button class="btn btn-ghost" data-close data-go="cu" data-code="' + esc(r.CU_Code) + '">Public record</button><button class="btn btn-primary" data-close>Register another</button>' });
+              issuedModal(r, payload.contactEmail);
             }).catch(function (e) { busy(x, false); close(); $('#r-msg').innerHTML = errBox(e); window.scrollTo(0, 0); });
           };
         } });
@@ -2168,6 +2499,7 @@ window.__WEB__ = true;
     var req = {}, catArgs = null;
     if (start.route === 'catalog') { catArgs = catalogArgs(start.params); req.catalog = { q: catArgs[0], filters: catArgs[1] }; }
     if (start.route === 'cu') req.record = start.params.code;
+    if (IS_WEB && tok) req.site = INIT.baseUrl; // lets the registry put this website's address in QR codes and emails
     var bootP = rawApi('bootstrap', [tok, req]);
     if (catArgs) primeMemo('searchCatalog', catArgs, bootP.then(function (r) { return r.catalog; }));
     if (req.record) primeMemo('getCatalogRecord', [req.record], bootP.then(function (r) { if (r.recordError) throw new Error(r.recordError); return r.record; }));
@@ -2191,14 +2523,14 @@ window.__WEB__ = true;
           '<div class="wrap narrow"><div class="card card-pad" style="border-top:3px solid var(--foil)"><p class="section-label">Almost there</p><h1 style="font-size:30px;margin-bottom:8px">Connect this page to Google</h1>' +
           '<p class="muted" style="margin-top:0">The registry\'s screens, data and sign-in come from your Google Apps Script backend, so nothing can show until this page knows its address.</p>' +
           '<ol class="howto"><li>In Apps Script, open <b>Deploy → Manage deployments</b> and copy the <b>Web app URL</b> (it ends in <span class="mono">/exec</span>).</li>' +
-          '<li>Open this <span class="mono">index.html</span> in a text editor, find <span class="mono">PASTE YOUR APPS SCRIPT WEB APP URL</span>, and paste the URL between the quotes on the next line: <span class="mono">apiUrl: \'https://script.google.com/macros/s/…/exec\'</span></li>' +
+          '<li>Open this <span class="mono">index.html</span> in a text editor, find <span class="mono">PASTE YOUR APPS SCRIPT WEB APP URL</span>, and paste the URL between the quotes on the next line: <span class="mono">&lt;meta name="cu-api-url" content="https://script.google.com/macros/s/…/exec"&gt;</span>. Change nothing else — the page refuses edited code.</li>' +
           '<li>Save the file, upload it to GitHub, and open your GitHub Pages address.</li></ol>' +
-          '<button class="btn btn-primary" onclick="location.reload()">I\'ve added it — reload</button></div></div>';
+          '<button class="btn btn-primary" data-reload>I\'ve added it — reload</button></div></div>';
         return;
       }
       $app.innerHTML = '<div class="wrap narrow"><div class="card card-pad"><h1>Registry unavailable</h1><p>' + esc(e.message) + '</p>' +
         '<p class="muted small">If this keeps happening, check that the Apps Script deployment is set to “Who has access: Anyone” and that the address in index.html ends in /exec.</p>' +
-        '<button class="btn btn-primary" onclick="location.reload()">Try again</button></div></div>';
+        '<button class="btn btn-primary" data-reload>Try again</button></div></div>';
     });
   }
   boot();
